@@ -1,3 +1,9 @@
+console.log('Background script loaded');
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('Extension installed');
+});
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.action === "sendDataToFlask") {
         console.log("Received data from content script:", request.data);

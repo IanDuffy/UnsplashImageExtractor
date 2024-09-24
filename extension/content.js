@@ -25,9 +25,12 @@ function extractImageData() {
 
     console.log("Sending data to background script:", data);
 
-    chrome.runtime.sendMessage({
-        action: "sendDataToFlask",
-        data: data
+    chrome.runtime.sendMessage({action: "sendDataToFlask", data: data}, function(response) {
+        if (chrome.runtime.lastError) {
+            console.error('Error sending message:', chrome.runtime.lastError);
+        } else {
+            console.log('Message sent successfully');
+        }
     });
 }
 
