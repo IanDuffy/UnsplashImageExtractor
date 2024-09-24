@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 function sendDataToFlaskApp(data) {
-    fetch('http://localhost:5000/receive_data', {
+    fetch('https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/receive_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ function sendDataToFlaskApp(data) {
 }
 
 function checkFlaskAppStatus() {
-    fetch('http://localhost:5000/status')
+    fetch('https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/status')
         .then(response => response.json())
         .then(data => {
             console.log("Flask app status:", data.status);
