@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     return true; // Keep the message channel open for asynchronous response
 });
 
-function sendDataToFlaskApp(data) {
+function sendDataToFlaskApp(data, retryCount = 0) {
     fetch('https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/receive_data', {
         method: 'POST',
         headers: {
@@ -40,7 +40,18 @@ function sendDataToFlaskApp(data) {
         let errorMessage = "Error sending data to Flask app. ";
 
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-            errorMessage += "Network error: Unable to connect to the Flask app. Please check your internet connection.";
+            errorMessage += "Could not establish connection. ";
+            if (retryCount < 3) {
+                errorMessage += "Retrying in 5 seconds...";
+                chrome.runtime.sendMessage({
+                    action: "showMessage",
+                    message: errorMessage
+                });
+                setTimeout(() => sendDataToFlaskApp(data, retryCount + 1), 5000);
+                return;
+            } else {
+                errorMessage += "Max retries reached. Please check your internet connection and try again later.";
+            }
         } else if (error.name === 'AbortError') {
             errorMessage += "The request was aborted. Please try again.";
         } else if (error instanceof SyntaxError) {
@@ -83,7 +94,7 @@ function checkFlaskAppStatus() {
             let errorMessage = "Error checking Flask app status. ";
 
             if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-                errorMessage += "Network error: Unable to connect to the Flask app. Please check your internet connection.";
+                errorMessage += "Could not establish connection. Please check your internet connection.";
             } else if (error.name === 'AbortError') {
                 errorMessage += "The request was aborted. Please try again.";
             } else if (error instanceof SyntaxError) {
@@ -113,9 +124,17 @@ function testFlaskConnection() {
     })
     .catch(error => {
       console.error('Flask app connection test failed:', error);
+      let errorMessage = "Flask app connection test failed: ";
+      
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        errorMessage += "Could not establish connection. Please check your internet connection.";
+      } else {
+        errorMessage += error.message;
+      }
+      
       chrome.runtime.sendMessage({
         action: "showMessage",
-        message: "Flask app connection test failed: " + error.message
+        message: errorMessage
       });
     });
 }
