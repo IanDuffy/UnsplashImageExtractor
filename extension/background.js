@@ -23,10 +23,28 @@ function sendDataToFlaskApp(data) {
         console.log("Data sent to Flask app successfully.", result);
     })
     .catch((error) => {
-        console.error("Error sending data to Flask app: " + error);
+        console.error("Error sending data to Flask app:", error);
+        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            console.error("This may be due to the Flask app not running or CORS issues.");
+        }
         // Save data locally if there's a network error
         chrome.storage.local.set({unsplashData: data}, function() {
             console.log('Data saved locally due to network error');
         });
     });
 }
+
+function checkFlaskAppStatus() {
+    fetch('http://localhost:5000/status')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Flask app status:", data.status);
+        })
+        .catch(error => {
+            console.error("Error checking Flask app status:", error);
+        });
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+    checkFlaskAppStatus();
+});
