@@ -1,19 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const searchQuery = document.getElementById('searchQuery');
-    const orientation = document.getElementById('orientation');
     const plusLicense = document.getElementById('plusLicense');
     const message = document.getElementById('message');
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const query = searchQuery.value;
-        const selectedOrientation = orientation.value;
         const usePlusLicense = plusLicense.checked;
         
         message.textContent = 'Searching...';
         
-        chrome.tabs.create({ url: constructSearchUrl(query, selectedOrientation, usePlusLicense), active: false }, function(tab) {
+        chrome.tabs.create({ url: constructSearchUrl(query, usePlusLicense), active: false }, function(tab) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['content.js']
@@ -29,20 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function constructSearchUrl(query, orientation, usePlusLicense) {
+    function constructSearchUrl(query, usePlusLicense) {
         let url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
-        let params = [];
-        
-        if (orientation) {
-            params.push(`orientation=${orientation}`);
-        }
         
         if (usePlusLicense) {
-            params.push('license=plus');
-        }
-        
-        if (params.length > 0) {
-            url += '?' + params.join('&');
+            url += '?license=plus';
         }
         
         return url;

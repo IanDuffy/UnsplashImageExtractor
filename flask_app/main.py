@@ -18,14 +18,11 @@ def index():
 @app.route('/search')
 def search():
     query = request.args.get('query', '')
-    orientation = request.args.get('orientation', '')
     plus_license = request.args.get('plus_license', '')
     
     url = f"https://unsplash.com/s/photos/{query}"
     params = []
     
-    if orientation:
-        params.append(f"orientation={orientation}")
     if plus_license:
         params.append("license=plus")
     
@@ -37,6 +34,8 @@ def search():
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
     data = request.json
+    # Ensure we only process up to 20 images
+    data['images'] = data['images'][:20]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"extracted_data_{timestamp}.json"
     file_path = os.path.join(downloaded_files_path, filename)

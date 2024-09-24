@@ -1,6 +1,6 @@
 function extractImageData() {
     const figures = document.querySelectorAll('figure');
-    const images = Array.from(figures).map(figure => {
+    const images = Array.from(figures).slice(0, 20).map(figure => {
         const anchor = figure.querySelector('a');
         const img = figure.querySelector('img');
         if (!anchor || !img) return null;
@@ -13,8 +13,7 @@ function extractImageData() {
         return {
             title: title,
             imageUrl: imageUrl,
-            thumbnailUrl: thumbnailUrl,
-            orientation: getImageOrientation(img)
+            thumbnailUrl: thumbnailUrl
         };
     }).filter(Boolean);
 
@@ -32,12 +31,6 @@ function extractImageData() {
             console.log('Message sent successfully');
         }
     });
-}
-
-function getImageOrientation(img) {
-    const width = img.naturalWidth || img.width;
-    const height = img.naturalHeight || img.height;
-    return width > height ? 'landscape' : 'portrait';
 }
 
 function waitForImages() {
