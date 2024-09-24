@@ -10,13 +10,22 @@
     <h1>Unsplash Image Viewer</h1>
     <form id="searchForm">
         <input type="text" id="searchQuery" placeholder="Enter search query" required>
+        <select id="orientation">
+            <option value="">Any Orientation</option>
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+        </select>
         <button type="submit">Search Unsplash</button>
     </form>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
-            const url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
+            const orientation = document.getElementById('orientation').value;
+            let url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
+            if (orientation) {
+                url += `?orientation=${orientation}`;
+            }
             window.open(url, '_blank');
         });
     </script>

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const searchQuery = document.getElementById('searchQuery');
     const plusImages = document.getElementById('plusImages');
+    const orientation = document.getElementById('orientation');
     const results = document.getElementById('results');
     const resultCount = document.getElementById('resultCount');
     const imageGrid = document.getElementById('imageGrid');
@@ -12,11 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const query = searchQuery.value;
         const usePlusImages = plusImages.checked;
+        const selectedOrientation = orientation.value;
         
         message.textContent = 'Searching...';
         results.style.display = 'none';
         
-        chrome.tabs.create({ url: constructSearchUrl(query, usePlusImages), active: false }, function(tab) {
+        chrome.tabs.create({ url: constructSearchUrl(query, usePlusImages, selectedOrientation), active: false }, function(tab) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['content.js']
@@ -38,11 +40,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function constructSearchUrl(query, usePlusImages) {
+    function constructSearchUrl(query, usePlusImages, selectedOrientation) {
         let url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
+        let params = [];
+        
         if (usePlusImages) {
-            url += '?license=plus';
+            params.push('license=plus');
         }
+        
+        if (selectedOrientation) {
+            params.push(`orientation=${selectedOrientation}`);
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
         return url;
     }
 

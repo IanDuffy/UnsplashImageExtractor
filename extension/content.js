@@ -13,7 +13,8 @@ function extractImageData() {
         return {
             title: anchor.getAttribute('title'),
             imageUrl: 'https://unsplash.com' + anchor.getAttribute('href'),
-            thumbnailUrl: img.srcset.split(',').find(src => src.includes('300w')).trim().split(' ')[0]
+            thumbnailUrl: img.srcset.split(',').find(src => src.includes('300w')).trim().split(' ')[0],
+            orientation: getImageOrientation(img)
         };
     });
 
@@ -24,6 +25,12 @@ function extractImageData() {
             images: images
         }
     });
+}
+
+function getImageOrientation(img) {
+    const width = img.naturalWidth || img.width;
+    const height = img.naturalHeight || img.height;
+    return width > height ? 'landscape' : 'portrait';
 }
 
 // Simulate scrolling to load all images
