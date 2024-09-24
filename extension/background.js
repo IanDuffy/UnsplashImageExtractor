@@ -64,7 +64,7 @@ function checkFlaskAppStatus() {
             console.error("Error checking Flask app status:", error);
             chrome.runtime.sendMessage({
                 action: "showMessage",
-                message: "Error checking Flask app status. Make sure the Flask app is running."
+                message: "Error checking Flask app status. Please ensure the Flask app is running and accessible."
             });
         });
 }

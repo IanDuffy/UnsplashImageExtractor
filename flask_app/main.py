@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["chrome-extension://*", "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Ensure the 'downloaded_files' folder exists
 downloaded_files_path = os.path.join(os.getcwd(), 'downloaded_files')
@@ -48,6 +48,7 @@ def receive_data():
 
 @app.route('/status')
 def status():
+    print("Status endpoint accessed")
     return jsonify({"status": "running"})
 
 if __name__ == '__main__':
