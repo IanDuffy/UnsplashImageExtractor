@@ -1,9 +1,3 @@
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === "extract") {
-        extractImageData();
-    }
-});
-
 function extractImageData() {
     const figures = document.querySelectorAll('figure');
     const images = Array.from(figures).map(figure => {
@@ -32,4 +26,5 @@ function getImageOrientation(img) {
     return width > height ? 'landscape' : 'portrait';
 }
 
-extractImageData();
+// Wait for the page to load completely before extracting data
+window.addEventListener('load', extractImageData);
