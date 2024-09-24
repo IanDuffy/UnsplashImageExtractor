@@ -8,11 +8,7 @@ function extractImageData() {
         const title = anchor.getAttribute('title') || 'Untitled';
         const imageUrl = anchor.href || '';
         const srcset = img.srcset || '';
-        
-        // Extract the thumbnail URL (300w) from srcset
-        const thumbnailUrl = srcset.split(',')
-            .map(s => s.trim().split(' '))
-            .find(([url, size]) => size === '300w')?.[0] || img.src;
+        const thumbnailUrl = srcset.split(',').find(src => src.includes('300w'))?.trim().split(' ')[0] || img.src;
 
         return {
             title: title,
@@ -26,8 +22,15 @@ function extractImageData() {
         images: images
     };
 
-    console.log("Extracted data:", data);
-    chrome.runtime.sendMessage({action: "sendDataToFlask", data: data});
+    console.log("Sending data to background script:", data);
+
+    chrome.runtime.sendMessage({action: "sendDataToFlask", data: data}, function(response) {
+        if (chrome.runtime.lastError) {
+            console.error('Error sending message:', chrome.runtime.lastError);
+        } else {
+            console.log('Message sent successfully');
+        }
+    });
 }
 
 function waitForImages() {
