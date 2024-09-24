@@ -1,11 +1,21 @@
 // content.js
 
 /**
- * Extracts image data from the Unsplash gallery.
+ * Extracts image data and the number of images from the Unsplash gallery.
+ * - imageCount: Number of images found in the search.
  * - imageUrl: Direct link to the image page.
  * - thumbnailUrl: URL of the thumbnail image with 300w size.
  */
 function extractImageData() {
+    // Extract the number of images from the search navigation
+    const imageCountElement = document.querySelector('a[data-testid="search-nav-link-photos"] span.AQhbt');
+    let imageCount = '0';
+    if (imageCountElement) {
+        imageCount = imageCountElement.textContent.trim();
+    } else {
+        console.warn('Image count element not found.');
+    }
+
     const figures = document.querySelectorAll('figure');
     const images = Array.from(figures).slice(0, 20).map(figure => {
         // Select the <a> tag with itemprop="contentUrl" within the figure
@@ -29,8 +39,14 @@ function extractImageData() {
         const srcset = img.getAttribute('srcset') || '';
         let thumbnailUrl = '';
 
-        // Function to extract the URL corresponding to 300w
+        /**
+         * Extracts the URL corresponding to the 300w descriptor from the srcset.
+         * @param {string} srcset - The srcset attribute value.
+         * @returns {string|null} - The URL with 300w, or null if not found.
+         */
         const getThumbnailUrl = (srcset) => {
+            if (!srcset) return null;
+
             // Split the srcset into individual sources
             const sources = srcset.split(',');
 
@@ -42,15 +58,15 @@ function extractImageData() {
                 }
             }
 
-            // If '300w' is not found, return null or handle accordingly
+            // If '300w' is not found, log a warning and return null
+            console.warn(`300w thumbnail not found for image: ${imageUrl}`);
             return null;
         };
 
         thumbnailUrl = getThumbnailUrl(srcset);
 
-        // If '300w' URL is not found, you can choose to skip or handle it
+        // If '300w' URL is not found, skip this image
         if (!thumbnailUrl) {
-            console.warn(`300w thumbnail not found for image: ${imageUrl}`);
             return null; // Skip this image or handle as needed
         }
 
@@ -68,6 +84,7 @@ function extractImageData() {
 
     const data = {
         url: window.location.href,
+        imageCount: imageCount, // Add the image count here
         images: images
     };
 
