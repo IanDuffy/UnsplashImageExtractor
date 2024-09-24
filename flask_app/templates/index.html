@@ -8,64 +8,17 @@
 </head>
 <body>
     <h1>Unsplash Image Viewer</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" id="jsonFile" accept=".json" required>
-        <button type="submit">Upload and Display Images</button>
+    <form id="searchForm">
+        <input type="text" id="searchQuery" placeholder="Enter search query" required>
+        <button type="submit">Search Unsplash</button>
     </form>
-    <div id="results">
-        <h2>Results: <span id="resultCount"></span></h2>
-        <div id="imageGrid"></div>
-    </div>
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const fileInput = document.getElementById('jsonFile');
-            const file = fileInput.files[0];
-            
-            if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    displayImages(data);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while uploading the file.');
-                });
-            }
+            const query = document.getElementById('searchQuery').value;
+            const url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
+            window.open(url, '_blank');
         });
-
-        function displayImages(data) {
-            const resultCount = document.getElementById('resultCount');
-            const imageGrid = document.getElementById('imageGrid');
-            
-            resultCount.textContent = data.totalResults;
-            imageGrid.innerHTML = '';
-            
-            data.images.forEach(image => {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'image-container';
-                
-                const img = document.createElement('img');
-                img.src = image.thumbnailUrl;
-                img.alt = image.title;
-                
-                const title = document.createElement('p');
-                title.textContent = image.title;
-                
-                imgContainer.appendChild(img);
-                imgContainer.appendChild(title);
-                imgContainer.addEventListener('click', () => window.open(image.imageUrl, '_blank'));
-                
-                imageGrid.appendChild(imgContainer);
-            });
-        }
     </script>
 </body>
 </html>
