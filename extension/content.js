@@ -3,13 +3,20 @@ function extractImageData() {
     const images = Array.from(figures).map(figure => {
         const anchor = figure.querySelector('a');
         const img = figure.querySelector('img');
+        if (!anchor || !img) return null;
+
+        const title = anchor.getAttribute('title') || 'Untitled';
+        const imageUrl = anchor.href || '';
+        const srcset = img.srcset || '';
+        const thumbnailUrl = srcset.split(',').find(src => src.includes('300w'))?.trim().split(' ')[0] || img.src;
+
         return {
-            title: anchor.getAttribute('title'),
-            imageUrl: 'https://unsplash.com' + anchor.getAttribute('href'),
-            thumbnailUrl: img.srcset.split(',').find(src => src.includes('300w')).trim().split(' ')[0],
+            title: title,
+            imageUrl: imageUrl,
+            thumbnailUrl: thumbnailUrl,
             orientation: getImageOrientation(img)
         };
-    });
+    }).filter(Boolean);
 
     chrome.runtime.sendMessage({
         action: "sendDataToFlask",
@@ -26,5 +33,23 @@ function getImageOrientation(img) {
     return width > height ? 'landscape' : 'portrait';
 }
 
-// Wait for the page to load completely before extracting data
-window.addEventListener('load', extractImageData);
+function waitForImages() {
+    return new Promise((resolve) => {
+        const checkImages = () => {
+            const images = document.querySelectorAll('figure img');
+            if (images.length > 0) {
+                resolve();
+            } else {
+                setTimeout(checkImages, 100);
+            }
+        };
+        checkImages();
+    });
+}
+
+async function init() {
+    await waitForImages();
+    extractImageData();
+}
+
+init();

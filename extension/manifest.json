@@ -4,13 +4,17 @@
   "version": "1.0",
   "description": "Extract and preview Unsplash images",
   "permissions": ["activeTab", "scripting", "storage", "downloads"],
+  "host_permissions": [
+    "https://unsplash.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://unsplash.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ]
 }
