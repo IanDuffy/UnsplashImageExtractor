@@ -42,7 +42,7 @@ function sendDataToFlaskApp(data, retryCount = 0) {
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
             errorMessage += "Could not establish connection. ";
             if (retryCount < 3) {
-                errorMessage += "Retrying in 5 seconds...";
+                errorMessage += `Retrying (${retryCount + 1}/3) in 5 seconds...`;
                 chrome.runtime.sendMessage({
                     action: "showMessage",
                     message: errorMessage
@@ -50,10 +50,12 @@ function sendDataToFlaskApp(data, retryCount = 0) {
                 setTimeout(() => sendDataToFlaskApp(data, retryCount + 1), 5000);
                 return;
             } else {
-                errorMessage += "Max retries reached. Please check your internet connection and try again later.";
+                errorMessage += "Max retries reached. Data will be saved locally.";
+                saveDataLocally(data);
             }
         } else if (error.name === 'AbortError') {
-            errorMessage += "The request was aborted. Please try again.";
+            errorMessage += "The request was aborted. Data will be saved locally.";
+            saveDataLocally(data);
         } else if (error instanceof SyntaxError) {
             errorMessage += "Received invalid JSON from the server. Please try again later.";
         } else if (error.message.includes('HTTP error!')) {
@@ -66,10 +68,15 @@ function sendDataToFlaskApp(data, retryCount = 0) {
             action: "showMessage",
             message: errorMessage
         });
+    });
+}
 
-        // Save data locally if there's a network error
-        chrome.storage.local.set({unsplashData: data}, function() {
-            console.log('Data saved locally due to network error');
+function saveDataLocally(data) {
+    chrome.storage.local.set({unsplashData: data}, function() {
+        console.log('Data saved locally due to network error');
+        chrome.runtime.sendMessage({
+            action: "showMessage",
+            message: "Data saved locally. You can try sending it later when the connection is restored."
         });
     });
 }
@@ -141,3 +148,16 @@ function testFlaskConnection() {
 
 // Add periodic status check
 setInterval(checkFlaskAppStatus, 60000); // Check every minute
+
+// Function to attempt sending locally saved data
+function trySendingLocalData() {
+    chrome.storage.local.get(['unsplashData'], function(result) {
+        if (result.unsplashData) {
+            console.log('Attempting to send locally saved data');
+            sendDataToFlaskApp(result.unsplashData);
+        }
+    });
+}
+
+// Add periodic attempt to send locally saved data
+setInterval(trySendingLocalData, 300000); // Try every 5 minutes
