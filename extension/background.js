@@ -1,28 +1,37 @@
-let extractedData = null;
-
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === "storeData") {
-        extractedData = request.data;
-        chrome.runtime.sendMessage({ action: "displayResults", data: extractedData });
-    } else if (request.action === "saveJSON") {
-        if (extractedData) {
-            const jsonString = JSON.stringify(extractedData, null, 2);
-            const blob = new Blob([jsonString], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            
-            chrome.downloads.download({
-                url: url,
-                filename: "unsplash_images.json",
-                saveAs: true
-            }, function(downloadId) {
-                if (chrome.runtime.lastError) {
-                    chrome.runtime.sendMessage({ action: "showMessage", message: "Error saving JSON file." });
-                } else {
-                    chrome.runtime.sendMessage({ action: "showMessage", message: "JSON file saved successfully." });
-                }
+    if (request.action === "startExtraction") {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                files: ['content.js']
+            }, function() {
+                chrome.tabs.sendMessage(tabs[0].id, { action: "extract" });
             });
-        } else {
-            chrome.runtime.sendMessage({ action: "showMessage", message: "No data to save. Please perform a search first." });
-        }
+        });
+    } else if (request.action === "sendDataToFlask") {
+        sendDataToFlaskApp(request.data);
     }
 });
+
+function sendDataToFlaskApp(data) {
+    fetch('http://localhost:5000/receive_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(result => {
+        chrome.runtime.sendMessage({ 
+            action: "showMessage", 
+            message: "Data sent to Flask app successfully." 
+        });
+    })
+    .catch((error) => {
+        chrome.runtime.sendMessage({ 
+            action: "showMessage", 
+            message: "Error sending data to Flask app: " + error 
+        });
+    });
+}

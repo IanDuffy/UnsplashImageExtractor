@@ -8,23 +8,7 @@
 </head>
 <body>
     <h1>Unsplash Image Extractor</h1>
-    <form id="searchForm">
-        <input type="text" id="searchQuery" placeholder="Enter search query" required>
-        <label>
-            <input type="checkbox" id="plusImages"> Plus Images
-        </label>
-        <select id="orientation">
-            <option value="">Any Orientation</option>
-            <option value="landscape">Landscape</option>
-            <option value="portrait">Portrait</option>
-        </select>
-        <button type="submit">Search</button>
-    </form>
-    <div id="results" style="display: none;">
-        <h2>Results: <span id="resultCount"></span></h2>
-        <div id="imageGrid"></div>
-        <button id="confirmButton">Confirm and Save JSON</button>
-    </div>
+    <button id="extractButton">Extract Images from Current Tab</button>
     <div id="message"></div>
     <script src="popup.js"></script>
 </body>
