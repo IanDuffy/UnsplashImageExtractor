@@ -1,43 +1,58 @@
 // content.js
 
+/**
+ * Extracts image data from the Unsplash gallery.
+ * - imageUrl: Direct link to the image page.
+ * - thumbnailUrl: URL of the thumbnail image with 300w size.
+ */
 function extractImageData() {
     const figures = document.querySelectorAll('figure');
     const images = Array.from(figures).slice(0, 20).map(figure => {
-        const anchor = figure.querySelector('a');
+        // Select the <a> tag with itemprop="contentUrl" within the figure
+        const anchor = figure.querySelector('a[itemprop="contentUrl"]');
         if (!anchor) return null;
 
-        // Select the first <img> with 'sizes' attribute within the <a> tag
-        const img = anchor.querySelector('img[sizes]');
+        // Select the <img> tag with itemprop="thumbnailUrl" within the <a> tag
+        const img = anchor.querySelector('img[itemprop="thumbnailUrl"]');
         if (!img) return null;
 
+        // Extract the title from the <a> tag's title attribute
         const title = anchor.getAttribute('title') || 'Untitled';
-        const imageUrl = anchor.href || '';
 
+        // Extract the relative href and construct the full imageUrl
+        const imageUrlRelative = anchor.getAttribute('href') || '';
+        const imageUrl = imageUrlRelative.startsWith('http')
+            ? imageUrlRelative
+            : `https://unsplash.com${imageUrlRelative}`;
+
+        // Extract the srcset attribute
         const srcset = img.getAttribute('srcset') || '';
+        let thumbnailUrl = '';
 
-        // Function to extract the base URL and append 'w=300'
+        // Function to extract the URL corresponding to 300w
         const getThumbnailUrl = (srcset) => {
-            if (!srcset) return img.src; // Fallback to img.src if srcset is empty
-
             // Split the srcset into individual sources
             const sources = srcset.split(',');
 
-            // Extract the first URL from srcset
-            const firstSource = sources[0].trim();
-            const firstUrl = firstSource.split(' ')[0];
-
-            try {
-                const urlObj = new URL(firstUrl);
-                // Append or update the 'w' query parameter to 300
-                urlObj.searchParams.set('w', '300');
-                return urlObj.toString();
-            } catch (error) {
-                console.error('Invalid URL:', firstUrl);
-                return firstUrl; // Fallback to the original URL if invalid
+            // Iterate through each source to find the one with '300w'
+            for (let source of sources) {
+                const [url, descriptor] = source.trim().split(' ');
+                if (descriptor === '300w') {
+                    return url;
+                }
             }
+
+            // If '300w' is not found, return null or handle accordingly
+            return null;
         };
 
-        const thumbnailUrl = getThumbnailUrl(srcset);
+        thumbnailUrl = getThumbnailUrl(srcset);
+
+        // If '300w' URL is not found, you can choose to skip or handle it
+        if (!thumbnailUrl) {
+            console.warn(`300w thumbnail not found for image: ${imageUrl}`);
+            return null; // Skip this image or handle as needed
+        }
 
         // Debugging Logs
         console.log(`Title: ${title}`);
@@ -67,10 +82,14 @@ function extractImageData() {
     });
 }
 
+/**
+ * Waits for the images to load in the DOM before extracting data.
+ */
 function waitForImages() {
     return new Promise((resolve) => {
         const checkImages = () => {
-            const images = document.querySelectorAll('figure img[sizes]');
+            // Check for <img> tags with itemprop="thumbnailUrl" within <a> tags inside <figure>
+            const images = document.querySelectorAll('figure a[itemprop="contentUrl"] img[itemprop="thumbnailUrl"]');
             if (images.length > 0) {
                 resolve();
             } else {
@@ -81,6 +100,9 @@ function waitForImages() {
     });
 }
 
+/**
+ * Initializes the data extraction process.
+ */
 async function init() {
     await waitForImages();
     extractImageData();
