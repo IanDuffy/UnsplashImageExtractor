@@ -1,7 +1,8 @@
 console.log('Background script loaded');
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Extension installed');
+  console.log('Extension installed or updated');
+  testFlaskConnection();
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -36,7 +37,19 @@ function sendDataToFlaskApp(data) {
     })
     .catch((error) => {
         console.error("Error sending data to Flask app:", error);
-        let errorMessage = "Error sending data to Flask app. " + error.message;
+        let errorMessage = "Error sending data to Flask app. ";
+
+        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            errorMessage += "Network error: Unable to connect to the Flask app. Please check your internet connection.";
+        } else if (error.name === 'AbortError') {
+            errorMessage += "The request was aborted. Please try again.";
+        } else if (error instanceof SyntaxError) {
+            errorMessage += "Received invalid JSON from the server. Please try again later.";
+        } else if (error.message.includes('HTTP error!')) {
+            errorMessage += `Server error: ${error.message}. Please try again later.`;
+        } else {
+            errorMessage += error.message;
+        }
 
         chrome.runtime.sendMessage({
             action: "showMessage",
@@ -67,7 +80,19 @@ function checkFlaskAppStatus() {
         })
         .catch(error => {
             console.error("Error checking Flask app status:", error);
-            let errorMessage = "Error checking Flask app status. " + error.message;
+            let errorMessage = "Error checking Flask app status. ";
+
+            if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+                errorMessage += "Network error: Unable to connect to the Flask app. Please check your internet connection.";
+            } else if (error.name === 'AbortError') {
+                errorMessage += "The request was aborted. Please try again.";
+            } else if (error instanceof SyntaxError) {
+                errorMessage += "Received invalid JSON from the server. Please try again later.";
+            } else if (error.message.includes('HTTP error!')) {
+                errorMessage += `Server error: ${error.message}. Please try again later.`;
+            } else {
+                errorMessage += error.message;
+            }
 
             chrome.runtime.sendMessage({
                 action: "showMessage",
@@ -76,9 +101,24 @@ function checkFlaskAppStatus() {
         });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-    checkFlaskAppStatus();
-});
+function testFlaskConnection() {
+  fetch('https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/status')
+    .then(response => response.json())
+    .then(data => {
+      console.log('Flask app connection test successful:', data);
+      chrome.runtime.sendMessage({
+        action: "showMessage",
+        message: "Flask app connection test successful"
+      });
+    })
+    .catch(error => {
+      console.error('Flask app connection test failed:', error);
+      chrome.runtime.sendMessage({
+        action: "showMessage",
+        message: "Flask app connection test failed: " + error.message
+      });
+    });
+}
 
 // Add periodic status check
 setInterval(checkFlaskAppStatus, 60000); // Check every minute
