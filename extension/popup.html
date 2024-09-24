@@ -8,7 +8,18 @@
 </head>
 <body>
     <h1>Unsplash Image Extractor</h1>
-    <button id="extractButton">Extract Images from Current Tab</button>
+    <form id="searchForm">
+        <input type="text" id="searchQuery" placeholder="Enter search query" required>
+        <select id="orientation">
+            <option value="">Any Orientation</option>
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+        </select>
+        <label>
+            <input type="checkbox" id="plusLicense"> Plus License
+        </label>
+        <button type="submit">Search</button>
+    </form>
     <div id="message"></div>
     <script src="popup.js"></script>
 </body>

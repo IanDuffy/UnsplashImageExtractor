@@ -8,6 +8,25 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/search')
+def search():
+    query = request.args.get('query', '')
+    orientation = request.args.get('orientation', '')
+    plus_license = request.args.get('plus_license', '')
+    
+    url = f"https://unsplash.com/s/photos/{query}"
+    params = []
+    
+    if orientation:
+        params.append(f"orientation={orientation}")
+    if plus_license:
+        params.append("license=plus")
+    
+    if params:
+        url += '?' + '&'.join(params)
+    
+    return jsonify({"search_url": url})
+
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
     data = request.json

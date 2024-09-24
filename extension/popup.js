@@ -1,10 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const extractButton = document.getElementById('extractButton');
+    const searchForm = document.getElementById('searchForm');
+    const searchQuery = document.getElementById('searchQuery');
+    const orientation = document.getElementById('orientation');
+    const plusLicense = document.getElementById('plusLicense');
     const message = document.getElementById('message');
 
-    extractButton.addEventListener('click', function() {
-        message.textContent = 'Extracting images...';
-        chrome.runtime.sendMessage({ action: "startExtraction" });
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = searchQuery.value;
+        const selectedOrientation = orientation.value;
+        const usePlusLicense = plusLicense.checked;
+        
+        message.textContent = 'Searching...';
+        
+        chrome.tabs.create({ url: constructSearchUrl(query, selectedOrientation, usePlusLicense), active: false }, function(tab) {
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['content.js']
+            }, function() {
+                chrome.tabs.sendMessage(tab.id, { action: "extract" });
+            });
+        });
     });
 
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -12,4 +28,23 @@ document.addEventListener('DOMContentLoaded', function() {
             message.textContent = request.message;
         }
     });
+
+    function constructSearchUrl(query, orientation, usePlusLicense) {
+        let url = `https://unsplash.com/s/photos/${encodeURIComponent(query)}`;
+        let params = [];
+        
+        if (orientation) {
+            params.push(`orientation=${orientation}`);
+        }
+        
+        if (usePlusLicense) {
+            params.push('license=plus');
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        return url;
+    }
 });
