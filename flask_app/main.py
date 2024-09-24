@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import json
 from datetime import datetime
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 # Ensure the 'downloaded_files' folder exists
 downloaded_files_path = os.path.join(os.getcwd(), 'downloaded_files')
