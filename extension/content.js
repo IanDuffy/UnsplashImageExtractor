@@ -18,12 +18,16 @@ function extractImageData() {
         };
     }).filter(Boolean);
 
+    const data = {
+        url: window.location.href,
+        images: images
+    };
+
+    console.log("Sending data to background script:", data);
+
     chrome.runtime.sendMessage({
         action: "sendDataToFlask",
-        data: {
-            url: window.location.href,
-            images: images
-        }
+        data: data
     });
 }
 

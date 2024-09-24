@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import json
 from datetime import datetime
+import os
 
 app = Flask(__name__)
+
+# Ensure the 'downloaded_files' folder exists
+downloaded_files_path = os.path.join(os.getcwd(), 'downloaded_files')
+os.makedirs(downloaded_files_path, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -32,8 +37,9 @@ def receive_data():
     data = request.json
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"extracted_data_{timestamp}.json"
+    file_path = os.path.join(downloaded_files_path, filename)
     
-    with open(filename, 'w') as f:
+    with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
     
     return jsonify({"message": "Data received and saved successfully", "filename": filename})
