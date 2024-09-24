@@ -1,0 +1,105 @@
+Here’s an updated set of guidelines for integrating the functionality where the images are displayed before saving them as a JSON file. This version passes the extracted data from the **content script** to the **background script** for temporary storage, displays the images within the **Chrome Extension**, and allows the user to save the JSON file once they confirm the results.
+
+### **Updated Guidelines for Chrome Extension Approach with Image Preview**
+
+---
+
+### **Core Functionality**
+
+1. **Search Input Management:**
+   - **Input Field**: Inside the Chrome Extension popup, provide a form where users can input a search query (e.g., "technology process").
+   - **Plus Images Toggle**: Add a checkbox next to the input to allow users to append `?license=plus` to the search URL.
+
+2. **Constructing the URL**:
+   - After the user submits the search query, dynamically build the Unsplash search URL with or without the Plus license flag.
+   - Example URL:
+     - Without Plus: `https://unsplash.com/s/photos/technology-process`
+     - With Plus: `https://unsplash.com/s/photos/technology-process?license=plus`
+
+---
+
+### **Content Extraction via Content Scripts**
+
+3. **Inject Content Script into Unsplash Page**:
+   - When the user initiates the search, inject a content script into the Unsplash search results page to extract the following data:
+     - **Number of Results**: Extract from the span with `data-testid="search-nav-link-photos"`.
+     - **Image Data**: Extract title, image URL, and thumbnail URL (300w).
+     - **Handle Dynamic Elements**: Ensure the page is fully loaded and images are visible before scraping, possibly using event listeners for content load or scrolling.
+
+4. **Data Extraction**:
+   - Extract the following from each `<figure>` in the results:
+     - **Title**: From the `<a>` tag inside each figure, extract the title of the image.
+     - **Image URL**: Get the URL extension from the figure and append `https://unsplash.com` to form the full image URL.
+     - **Thumbnail URL**: Extract the 300w thumbnail URL from the `srcset` attribute of the image tag.
+
+5. **Pass Data to Background Script**:
+   - After the content script finishes extracting the data, send the extracted data (as a JSON object) to the **background script** using Chrome's `message passing` API.
+
+---
+
+### **Preview and JSON Handling**
+
+6. **Temporary Data Storage in Background Script**:
+   - Store the image data (titles, URLs, thumbnails) in a temporary variable in the **background script**.
+   - This data will be passed back to the popup for preview before saving.
+
+7. **Display Image Previews in the Chrome Extension**:
+   - Once the data is stored in the background script, pass it to the popup using `chrome.runtime.sendMessage`.
+   - In the popup, display the **image thumbnails in a responsive grid**. Each thumbnail should be clickable, leading the user to the full Unsplash image URL when clicked.
+
+---
+
+### **Saving Data to JSON File**
+
+8. **User Confirmation and JSON File Creation**:
+   - Provide a "Confirm" button in the extension popup once the images are displayed.
+   - When the user clicks "Confirm," generate a JSON file from the displayed image data.
+   - Use the **Chrome Extension downloads API** to prompt the user to download the JSON file or save it locally for use by the Flask app.
+
+---
+
+### **Flask App Integration**
+
+9. **Retrieve JSON Data in Flask**:
+   - In your Flask app, set up a route to handle JSON file uploads or allow the user to upload the file manually.
+   - Once the JSON file is uploaded to Flask, parse the data and display the images on the web frontend, similar to the preview provided in the Chrome Extension.
+
+---
+
+### **Additional Guidelines for Dynamic Pages**
+
+10. **Handle Infinite Scrolling**:
+    - If Unsplash uses infinite scrolling to load more results, your content script should simulate scrolling to ensure all images are loaded before extraction.
+    - This can be done by adding an event listener to detect when the user scrolls to the bottom of the page and triggering additional data extraction.
+
+---
+
+### **Error Handling & User Feedback**
+
+11. **Error Handling**:
+    - Include error handling for scenarios such as no results found, network errors, or incomplete data extraction.
+    - Provide visual feedback (loading spinners, error messages) in the Chrome Extension popup.
+
+12. **User Feedback in Popup**:
+    - Add notifications in the popup to guide the user through the search, data preview, and JSON file saving steps.
+    - Use loading spinners while the content script is extracting the data and display an error message if something goes wrong.
+
+---
+
+### **Optimization & Testing**
+
+13. **Test the Extension**:
+    - Test the extension across multiple Unsplash queries to ensure it works both with and without the Plus Images toggle.
+    - Verify that the image previews load correctly and that the JSON file accurately reflects the displayed data.
+    - Test the Flask app to ensure it can retrieve and process the JSON file correctly.
+
+---
+
+### **Scalability Considerations**
+
+14. **Efficient Data Handling**:
+    - Make sure the Chrome Extension and background script can handle large datasets efficiently. For large searches, consider implementing pagination and lazy loading within the extension popup.
+
+---
+
+By integrating a content script with a background script to manage the extraction and preview of image data, this approach ensures a seamless user experience. The images are displayed to the user before saving, allowing them to review the data in the Chrome Extension itself. Once confirmed, the JSON file is generated and can be uploaded to your Flask app for further processing and display.
