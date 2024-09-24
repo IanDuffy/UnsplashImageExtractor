@@ -9,6 +9,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         console.log("Received data from content script:", request.data);
         sendDataToFlaskApp(request.data);
     }
+    try {
+        sendResponse({received: true});
+    } catch (error) {
+        if (error.message.includes("Could not establish connection")) {
+            console.log("Ignored error: Could not establish connection. This doesn't affect functionality.");
+        } else {
+            console.error("Error in sendResponse:", error);
+        }
+    }
+    return true; // Keep the message channel open for asynchronous response
 });
 
 function sendDataToFlaskApp(data) {
@@ -42,6 +52,8 @@ function sendDataToFlaskApp(data) {
             errorMessage += "The request was aborted. Please try again.";
         } else if (error.name === 'NetworkError') {
             errorMessage += "A network error occurred. Please check your internet connection.";
+        } else {
+            errorMessage += error.message;
         }
 
         chrome.runtime.sendMessage({
@@ -58,7 +70,12 @@ function sendDataToFlaskApp(data) {
 
 function checkFlaskAppStatus() {
     fetch('https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/status')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             console.log("Flask app status:", data.status);
             chrome.runtime.sendMessage({
@@ -68,9 +85,21 @@ function checkFlaskAppStatus() {
         })
         .catch(error => {
             console.error("Error checking Flask app status:", error);
+            let errorMessage = "Error checking Flask app status. ";
+
+            if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+                errorMessage += "This may be due to the Flask app not running or CORS issues.";
+            } else if (error.name === 'AbortError') {
+                errorMessage += "The request was aborted. Please try again.";
+            } else if (error.name === 'NetworkError') {
+                errorMessage += "A network error occurred. Please check your internet connection.";
+            } else {
+                errorMessage += error.message;
+            }
+
             chrome.runtime.sendMessage({
                 action: "showMessage",
-                message: "Error checking Flask app status. Please ensure the Flask app is running and accessible."
+                message: errorMessage
             });
         });
 }

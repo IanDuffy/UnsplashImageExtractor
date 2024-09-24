@@ -19,6 +19,10 @@ args = "Run Flask App"
 task = "workflow.run"
 args = "Chrome Extension Test"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask App Status Check"
+
 [[workflows.workflow]]
 name = "Run Flask App"
 author = "agent"
@@ -41,6 +45,17 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo 'Please test the Chrome extension manually and provide feedback.'"
+
+[[workflows.workflow]]
+name = "Flask App Status Check"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "curl -v https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/status"
 
 [deployment]
 run = ["sh", "-c", "python flask_app/main.py"]
