@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+#imageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.image-container {
+    text-align: center;
+    cursor: pointer;
+}
+
+.image-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+.image-container p {
+    margin-top: 5px;
+    font-size: 14px;
+}

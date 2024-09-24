@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsplash Image Extractor</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <h1>Unsplash Image Extractor</h1>
+    <form id="searchForm">
+        <input type="text" id="searchQuery" placeholder="Enter search query" required>
+        <label>
+            <input type="checkbox" id="plusImages"> Plus Images
+        </label>
+        <button type="submit">Search</button>
+    </form>
+    <div id="results" style="display: none;">
+        <h2>Results: <span id="resultCount"></span></h2>
+        <div id="imageGrid"></div>
+        <button id="confirmButton">Confirm and Save JSON</button>
+    </div>
+    <div id="message"></div>
+    <script src="popup.js"></script>
+</body>
+</html>

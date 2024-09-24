@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Unsplash Image Extractor",
+  "version": "1.0",
+  "description": "Extract and preview Unsplash images",
+  "permissions": ["activeTab", "scripting", "storage", "downloads"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://unsplash.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
