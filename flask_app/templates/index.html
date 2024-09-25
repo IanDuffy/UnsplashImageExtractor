@@ -35,7 +35,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.search_url) {
-                        // Send a message to the Chrome extension to open the tab
+                        console.log("Received search_url from backend:", data.search_url);
                         window.postMessage({
                             type: "OPEN_UNSPLASH_TAB",
                             url: data.search_url

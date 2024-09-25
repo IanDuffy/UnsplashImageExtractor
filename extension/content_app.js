@@ -2,27 +2,25 @@
 
 console.log("Content script for the app is running.");
 
-document.getElementById('searchForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const query = document.getElementById('searchQuery').value;
-    const plusLicense = document.getElementById('plusLicense').checked;
+const APP_ORIGIN = "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/";  // Replace with your actual app's origin
 
-    fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.search_url) {
-                // Send a message to the extension to open the tab
-                chrome.runtime.sendMessage({
-                    action: "openTab",
-                    url: data.search_url
-                });
-            } else {
-                console.error('No search_url returned from the backend.');
-                alert('Failed to generate search URL. Please try again.');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching search results:', error);
-            alert('An error occurred while searching. Please try again.');
-        });
-});
+window.addEventListener("message", function(event) {
+    // Only accept messages from the specified origin
+    if (event.origin !== APP_ORIGIN) return;
+
+    if (event.data && event.data.type === "OPEN_UNSPLASH_TAB") {
+        const url = event.data.url;
+        if (url) {
+            console.log("Received OPEN_UNSPLASH_TAB message with URL:", url);
+            chrome.runtime.sendMessage({ action: "openTab", url: url }, function(response) {
+                if (chrome.runtime.lastError) {
+                    console.error('Error sending message to background script:', chrome.runtime.lastError);
+                } else {
+                    console.log('Background script response:', response);
+                }
+            });
+        } else {
+            console.error('No URL provided in the message.');
+        }
+    }
+}, false);
