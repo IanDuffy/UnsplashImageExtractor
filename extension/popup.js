@@ -11,7 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         message.textContent = 'Searching...';
         
-        chrome.tabs.create({ url: constructSearchUrl(query, usePlusLicense), active: false }, function(tab) {
+        chrome.tabs.create({ 
+            url: constructSearchUrl(query, usePlusLicense), 
+            active: false 
+        }, function(tab) {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['content.js']
@@ -19,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 chrome.tabs.sendMessage(tab.id, { action: "extract" });
             });
         });
+
+        message.textContent = 'Search opened in background tab. Extracting images...';
     });
 
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
