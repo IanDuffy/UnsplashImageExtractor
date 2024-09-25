@@ -3,8 +3,6 @@ from flask_cors import CORS
 import json
 from datetime import datetime
 import os
-import requests
-from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -32,10 +30,29 @@ def search():
     plus_license = request.args.get('plus_license', '')
     
     url = f"https://unsplash.com/s/photos/{query}"
+    params = []
+    
     if plus_license:
-        url += "?license=plus"
+        params.append("license=plus")
+    
+    if params:
+        url += '?' + '&'.join(params)
     
     return jsonify({"search_url": url})
+
+@app.route('/receive_data', methods=['POST'])
+def receive_data():
+    data = request.json
+    # Ensure we only process up to 20 images
+    data['images'] = data['images'][:20]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"extracted_data_{timestamp}.json"
+    file_path = os.path.join(downloaded_files_path, filename)
+    
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=2)
+    
+    return jsonify({"message": "Data received and saved successfully", "filename": filename})
 
 @app.route('/status')
 def status():

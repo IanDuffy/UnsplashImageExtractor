@@ -9,9 +9,9 @@
 <body>
     <h1>Unsplash Image Viewer</h1>
     <form id="searchForm">
-        <input type="text" id="searchQuery" name="query" placeholder="Enter search query" required>
+        <input type="text" id="searchQuery" placeholder="Enter search query" required>
         <label>
-            <input type="checkbox" id="plusLicense" name="plus_license"> Plus License
+            <input type="checkbox" id="plusLicense"> Plus License
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
@@ -34,12 +34,17 @@
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    chrome.runtime.sendMessage({type: 'OPEN_UNSPLASH_TAB', url: data.search_url});
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+                    window.open(data.search_url, '_blank');
                 });
         });
+
+        // Function to refresh the page
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Refresh the page every 10 seconds
+        setInterval(refreshPage, 10000);
     </script>
 </body>
 </html>
