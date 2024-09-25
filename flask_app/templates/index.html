@@ -15,6 +15,7 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
+    <div id="imageGrid" class="image-grid"></div>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -24,9 +25,25 @@
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    window.open(data.search_url, '_blank');
+                    displayImages(data.images);
                 });
         });
+
+        function displayImages(images) {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            images.forEach(image => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                imageItem.innerHTML = `
+                    <a href="${image.imageUrl}" target="_blank">
+                        <img src="${image.thumbnailUrl}" alt="${image.title}">
+                    </a>
+                    <p class="image-title">${image.title}</p>
+                `;
+                imageGrid.appendChild(imageItem);
+            });
+        }
     </script>
 </body>
 </html>
