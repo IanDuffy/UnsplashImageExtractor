@@ -13,6 +13,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.action === "sendDataToFlask") {
         console.log("Received data from content script:", request.data);
         sendDataToFlaskApp(request.data);
+    } else if (request.type === "OPEN_UNSPLASH_TAB") {
+        chrome.tabs.create({ url: request.url, active: false }, function(tab) {
+            console.log('Unsplash search opened in background tab:', tab.id);
+        });
     }
     sendResponse({received: true});
     return true; // Keep the message channel open for asynchronous response

@@ -34,11 +34,16 @@
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    // Send a message to the Chrome extension to open the tab
-                    window.postMessage({
+                    chrome.runtime.sendMessage({
                         type: "OPEN_UNSPLASH_TAB",
                         url: data.search_url
-                    }, "*");
+                    }, function(response) {
+                        if (chrome.runtime.lastError) {
+                            console.error('Error sending message to extension:', chrome.runtime.lastError);
+                        } else {
+                            console.log('Message sent to extension successfully');
+                        }
+                    });
                 })
                 .catch(error => {
                     console.error('Error fetching search results:', error);
@@ -50,6 +55,8 @@
             location.reload();
         }
 
+        // Refresh the page every 10 seconds
+        setInterval(refreshPage, 10000);
     </script>
 </body>
 </html>
