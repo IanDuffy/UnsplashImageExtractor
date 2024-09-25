@@ -34,7 +34,10 @@
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
+                    // Open the URL in a new background tab
                     window.open(data.search_url, '_blank', 'noopener,noreferrer');
+                    // Optionally, you can focus back on the current window
+                    window.focus();
                 });
         });
 
