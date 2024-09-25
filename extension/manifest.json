@@ -6,8 +6,7 @@
   "permissions": ["activeTab", "scripting", "storage", "downloads", "tabs"],
   "host_permissions": [
     "https://unsplash.com/*",
-    "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/*",
-    "http://localhost:5000/*"
+    "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/*"
   ],
   "background": {
     "service_worker": "background.js"
