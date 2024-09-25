@@ -45,6 +45,18 @@ def receive_data():
     
     return jsonify({"message": "Data received and saved successfully", "filename": filename})
 
+@app.route('/view_data/<filename>')
+def view_data(filename):
+    file_path = os.path.join(downloaded_files_path, filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        return render_template('view_data.html', data=data)
+    else:
+        # Get a list of available files
+        available_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+        return render_template('file_not_found.html', filename=filename, available_files=available_files)
+
 @app.route('/status')
 def status():
     print("Status endpoint accessed")

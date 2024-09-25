@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Not Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>File Not Found</h1>
+    <p>The requested file "{{ filename }}" was not found.</p>
+    
+    {% if available_files %}
+        <h2>Available Files:</h2>
+        <ul>
+            {% for file in available_files %}
+                <li><a href="{{ url_for('view_data', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No extracted data files are currently available.</p>
+    {% endif %}
+    
+    <p><a href="{{ url_for('index') }}">Return to Home</a></p>
+</body>
+</html>
