@@ -11,15 +11,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         message.textContent = 'Searching...';
         
-        chrome.tabs.create({ 
-            url: constructSearchUrl(query, usePlusLicense), 
-            active: false 
-        }, function(tab) {
-            chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ['content.js']
-            }, function() {
-                chrome.tabs.sendMessage(tab.id, { action: "extract" });
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            const currentTab = tabs[0];
+            chrome.tabs.create({ 
+                url: constructSearchUrl(query, usePlusLicense), 
+                active: false 
+            }, function(newTab) {
+                chrome.scripting.executeScript({
+                    target: { tabId: newTab.id },
+                    files: ['content.js']
+                }, function() {
+                    chrome.tabs.sendMessage(newTab.id, { action: "extract" });
+                    // Focus back on the original tab
+                    chrome.tabs.update(currentTab.id, {active: true});
+                });
             });
         });
 
