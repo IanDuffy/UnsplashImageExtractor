@@ -21,15 +21,17 @@ def search():
     plus_license = request.args.get('plus_license', '')
     
     url = f"https://unsplash.com/s/photos/{query}"
-    params = []
-    
     if plus_license:
-        params.append("license=plus")
+        url += '?license=plus'
     
-    if params:
-        url += '?' + '&'.join(params)
-    
-    return jsonify({"search_url": url})
+    # Fetch the latest extracted data
+    latest_file = get_latest_file()
+    if latest_file:
+        with open(os.path.join(downloaded_files_path, latest_file), 'r') as f:
+            data = json.load(f)
+        return jsonify({"search_url": url, "images": data['images']})
+    else:
+        return jsonify({"search_url": url, "images": []})
 
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
@@ -43,24 +45,17 @@ def receive_data():
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
     
-    return jsonify({"message": "Data received and saved successfully", "filename": filename})
-
-@app.route('/view_data/<filename>')
-def view_data(filename):
-    file_path = os.path.join(downloaded_files_path, filename)
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        return render_template('view_data.html', data=data)
-    else:
-        # Get a list of available files
-        available_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
-        return render_template('file_not_found.html', filename=filename, available_files=available_files)
+    return jsonify({"message": "Data received and saved successfully", "filename": filename, "images": data['images']})
 
 @app.route('/status')
 def status():
-    print("Status endpoint accessed")
     return jsonify({"status": "running"})
+
+def get_latest_file():
+    files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+    if files:
+        return max(files, key=lambda f: os.path.getmtime(os.path.join(downloaded_files_path, f)))
+    return None
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
