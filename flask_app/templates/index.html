@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Unsplash Image Viewer</h1>
-    <form id="searchForm" action="{{ url_for('search') }}" method="GET">
+    <form id="searchForm">
         <input type="text" id="searchQuery" name="query" placeholder="Enter search query" required>
         <label>
             <input type="checkbox" id="plusLicense" name="plus_license"> Plus License
@@ -25,5 +25,21 @@
         </div>
         {% endfor %}
     </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            const plusLicense = document.getElementById('plusLicense').checked;
+            
+            fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
+                .then(response => response.json())
+                .then(data => {
+                    chrome.runtime.sendMessage({type: 'OPEN_UNSPLASH_TAB', url: data.search_url});
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
 </body>
 </html>

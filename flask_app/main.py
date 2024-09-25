@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 from datetime import datetime
@@ -35,43 +35,7 @@ def search():
     if plus_license:
         url += "?license=plus"
     
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
-    images = []
-    for figure in soup.find_all('figure', limit=20):
-        anchor = figure.find('a', {'itemprop': 'contentUrl'})
-        if anchor:
-            image_url = f"https://unsplash.com{anchor['href']}"
-            img = anchor.find('img', {'itemprop': 'thumbnailUrl'})
-            if img:
-                title = img.get('alt', 'Untitled')
-                thumbnail_url = img.get('src')
-                if thumbnail_url:
-                    images.append({
-                        'title': title,
-                        'imageUrl': image_url,
-                        'thumbnailUrl': thumbnail_url
-                    })
-    
-    data = {
-        'url': url,
-        'imageCount': len(images),
-        'images': images
-    }
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"extracted_data_{timestamp}.json"
-    file_path = os.path.join(downloaded_files_path, filename)
-    
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=2)
-    
-    return redirect(url_for('index'))
+    return jsonify({"search_url": url})
 
 @app.route('/status')
 def status():
