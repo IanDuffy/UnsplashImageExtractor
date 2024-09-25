@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 from datetime import datetime
@@ -49,6 +49,25 @@ def receive_data():
 def status():
     print("Status endpoint accessed")
     return jsonify({"status": "running"})
+
+@app.route('/view_images')
+def view_images():
+    # Get the latest JSON file from the downloaded_files directory
+    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+    if not json_files:
+        return "No image data available", 404
+
+    latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
+    file_path = os.path.join(downloaded_files_path, latest_file)
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    return render_template('view_images.html', images=data['images'])
+
+@app.route('/downloaded_files/<path:filename>')
+def downloaded_files(filename):
+    return send_from_directory(downloaded_files_path, filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

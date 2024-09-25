@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsplash Image Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Extracted Unsplash Images</h1>
+    <div id="imageGrid">
+        {% for image in images %}
+        <div class="image-container">
+            <a href="{{ image.imageUrl }}" target="_blank">
+                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
+            </a>
+            <p>{{ image.title }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
