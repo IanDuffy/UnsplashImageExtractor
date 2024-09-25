@@ -13,7 +13,16 @@ os.makedirs(downloaded_files_path, exist_ok=True)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get the latest JSON file from the downloaded_files directory
+    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+    if json_files:
+        latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
+        file_path = os.path.join(downloaded_files_path, latest_file)
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        return render_template('index.html', images=data['images'])
+    else:
+        return render_template('index.html', images=[])
 
 @app.route('/search')
 def search():
@@ -49,21 +58,6 @@ def receive_data():
 def status():
     print("Status endpoint accessed")
     return jsonify({"status": "running"})
-
-@app.route('/view_images')
-def view_images():
-    # Get the latest JSON file from the downloaded_files directory
-    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
-    if not json_files:
-        return "No image data available", 404
-
-    latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
-    file_path = os.path.join(downloaded_files_path, latest_file)
-
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-
-    return render_template('view_images.html', images=data['images'])
 
 @app.route('/downloaded_files/<path:filename>')
 def downloaded_files(filename):

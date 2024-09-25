@@ -15,7 +15,16 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <a href="{{ url_for('view_images') }}" class="view-images-link">View Extracted Images</a>
+    <div id="imageGrid">
+        {% for image in images %}
+        <div class="image-container">
+            <a href="{{ image.imageUrl }}" target="_blank">
+                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
+            </a>
+            <p>{{ image.title }}</p>
+        </div>
+        {% endfor %}
+    </div>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -28,6 +37,14 @@
                     window.open(data.search_url, '_blank');
                 });
         });
+
+        // Function to refresh the page
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Refresh the page every 10 seconds
+        setInterval(refreshPage, 10000);
     </script>
 </body>
 </html>
