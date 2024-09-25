@@ -2,11 +2,14 @@
 
 console.log("Content script for the app is running.");
 
-const APP_ORIGIN = "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev";  // Replace with your actual app's origin
+const APP_ORIGIN = window.location.origin;
 
 window.addEventListener("message", function(event) {
-    // Only accept messages from the specified origin
-    if (event.origin !== APP_ORIGIN) return;
+    // Only accept messages from the app's origin
+    if (event.origin !== APP_ORIGIN) {
+        console.warn(`Rejected message from origin ${event.origin}`);
+        return;
+    }
 
     if (event.data && event.data.type === "OPEN_UNSPLASH_TAB") {
         const url = event.data.url;
