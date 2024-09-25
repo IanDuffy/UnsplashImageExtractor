@@ -15,11 +15,12 @@
   "content_scripts": [
     {
       "matches": ["https://unsplash.com/*"],
-      "js": ["content.js"],
+      "js": ["content_unsplash.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/*"],
+      "js": ["content_app.js"]
     }
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  }
+  ]
 }

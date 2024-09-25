@@ -1,5 +1,7 @@
 // content.js
 
+console.log("Content script for Unsplash is running.");
+
 /**
  * Extracts image data and the number of images from the Unsplash gallery.
  * - imageCount: Number of images found in the search.

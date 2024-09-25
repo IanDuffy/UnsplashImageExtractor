@@ -30,11 +30,24 @@
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
             const plusLicense = document.getElementById('plusLicense').checked;
-            
+
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    window.open(data.search_url, '_blank');
+                    if (data.search_url) {
+                        // Send a message to the Chrome extension to open the tab
+                        window.postMessage({
+                            type: "OPEN_UNSPLASH_TAB",
+                            url: data.search_url
+                        }, "*");
+                    } else {
+                        console.error('No search_url returned from the backend.');
+                        alert('Failed to generate search URL. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching search results:', error);
+                    alert('An error occurred while searching. Please try again.');
                 });
         });
 
@@ -43,8 +56,6 @@
             location.reload();
         }
 
-        // Refresh the page every 10 seconds
-        setInterval(refreshPage, 10000);
     </script>
 </body>
 </html>
