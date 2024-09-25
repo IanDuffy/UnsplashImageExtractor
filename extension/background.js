@@ -50,30 +50,3 @@ function testFlaskConnection() {
       console.error('Flask app connection test failed:', error);
     });
 }
-
-// Add periodic status check
-setInterval(checkFlaskAppStatus, 60000); // Check every minute
-
-function checkFlaskAppStatus() {
-    fetch(`${FLASK_APP_URL}/status`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("Flask app status:", data.status);
-        })
-        .catch(error => {
-            console.error("Error checking Flask app status:", error);
-        });
-}
-
-// Function to attempt sending locally saved data
-function trySendingLocalData() {
-    chrome.storage.local.get(['unsplashData'], function(result) {
-        if (result.unsplashData) {
-            console.log('Attempting to send locally saved data');
-            sendDataToFlaskApp(result.unsplashData);
-        }
-    });
-}
-
-// Add periodic attempt to send locally saved data
-setInterval(trySendingLocalData, 300000); // Try every 5 minutes
