@@ -34,7 +34,7 @@
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    window.open(data.search_url, '_blank');
+                    window.open(data.search_url, '_blank', 'noopener,noreferrer');
                 });
         });
 
