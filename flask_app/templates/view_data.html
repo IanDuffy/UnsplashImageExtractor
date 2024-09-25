@@ -8,17 +8,21 @@
 </head>
 <body>
     <h1>Unsplash Image Viewer - Results</h1>
-    <div>
-        <h2>Applied Filters:</h2>
-        <p>Plus License: {{ 'Yes' if data.filters.plus_license else 'No' }}</p>
+    <div class="info-container">
+        <h2>Search Results</h2>
+        <p>Total Images Found: {{ data.imageCount }}</p>
+        <p>Applied Filters: {{ 'Plus License' if data.filters.plus_license else 'None' }}</p>
     </div>
-    <div id="imageGrid">
+    <div class="image-grid">
         {% for image in data.images %}
-        <div class="image-container">
-            <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
-            <p>{{ image.title }}</p>
+        <div class="image-item">
+            <a href="{{ image.imageUrl }}" target="_blank">
+                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
+                <p>{{ image.title }}</p>
+            </a>
         </div>
         {% endfor %}
     </div>
+    <a href="{{ url_for('upload_file') }}" class="back-link">Upload another file</a>
 </body>
 </html>
