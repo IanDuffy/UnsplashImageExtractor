@@ -30,13 +30,18 @@
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
             const plusLicense = document.getElementById('plusLicense').checked;
-            
+
             fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
                 .then(response => response.json())
                 .then(data => {
-                    const newTab = window.open(data.search_url, '_blank');
-                    newTab.blur();
-                    window.focus();
+                    // Send a message to the Chrome extension to open the tab
+                    window.postMessage({
+                        type: "OPEN_UNSPLASH_TAB",
+                        url: data.search_url
+                    }, "*");
+                })
+                .catch(error => {
+                    console.error('Error fetching search results:', error);
                 });
         });
 
