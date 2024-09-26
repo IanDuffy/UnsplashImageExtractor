@@ -51,7 +51,14 @@ def search():
     if params:
         url += '?' + urlencode(params)
     
-    return jsonify({"search_url": url})
+    # Get the latest images
+    latest_images = get_latest_images().json
+    
+    return jsonify({"search_url": url, "latest_images": latest_images})
+
+@app.route('/latest_images')
+def latest_images():
+    return get_latest_images()
 
 @app.route('/receive_data', methods=['POST'])
 def receive_data():

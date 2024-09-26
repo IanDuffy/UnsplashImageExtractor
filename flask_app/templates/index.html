@@ -28,6 +28,7 @@
     <div id="imageGrid"></div>
     <script>
         const imageGrid = document.getElementById('imageGrid');
+        let lastUpdateTime = 0;
 
         function createImageElement(image) {
             const container = document.createElement('div');
@@ -51,23 +52,30 @@
             return container;
         }
 
-        function updateImageGrid() {
-            fetch('/get_latest_images')
-                .then(response => response.json())
-                .then(data => {
-                    imageGrid.innerHTML = '';
-                    data.images.forEach(image => {
-                        imageGrid.appendChild(createImageElement(image));
-                    });
-                })
-                .catch(error => console.error('Error fetching images:', error));
+        function updateImageGrid(images) {
+            imageGrid.innerHTML = '';
+            images.forEach(image => {
+                imageGrid.appendChild(createImageElement(image));
+            });
         }
 
-        // Initial load
-        updateImageGrid();
+        function checkForNewImages() {
+            fetch('/latest_images')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.images && data.images.length > 0) {
+                        const newestImageTime = new Date(data.images[0].timestamp).getTime();
+                        if (newestImageTime > lastUpdateTime) {
+                            updateImageGrid(data.images);
+                            lastUpdateTime = newestImageTime;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching latest images:', error));
+        }
 
-        // Update every 10 seconds
-        setInterval(updateImageGrid, 10000);
+        // Check for new images every 5 seconds
+        setInterval(checkForNewImages, 5000);
 
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -92,6 +100,12 @@
                             type: "OPEN_UNSPLASH_TAB",
                             url: data.search_url
                         }, "*");
+                        
+                        // Update the image grid with the latest images
+                        if (data.latest_images && data.latest_images.images) {
+                            updateImageGrid(data.latest_images.images);
+                            lastUpdateTime = new Date().getTime();
+                        }
                     } else {
                         console.error('No search_url returned from the backend.');
                         alert('Failed to generate search URL. Please try again.');
@@ -102,6 +116,9 @@
                     alert('An error occurred while searching. Please try again.');
                 });
         });
+
+        // Initial load of images
+        checkForNewImages();
     </script>
 </body>
 </html>
