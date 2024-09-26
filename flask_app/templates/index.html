@@ -10,6 +10,11 @@
     <h1>Unsplash Image Viewer</h1>
     <form id="searchForm">
         <input type="text" id="searchQuery" placeholder="Enter search query" required>
+        <select id="orientation">
+            <option value="">Any orientation</option>
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+        </select>
         <label>
             <input type="checkbox" id="plusLicense"> Plus License
         </label>
@@ -29,9 +34,16 @@
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
+            const orientation = document.getElementById('orientation').value;
             const plusLicense = document.getElementById('plusLicense').checked;
 
-            fetch(`/search?query=${encodeURIComponent(query)}&plus_license=${plusLicense}`)
+            const searchParams = new URLSearchParams({
+                query: query,
+                orientation: orientation,
+                plus_license: plusLicense
+            });
+
+            fetch(`/search?${searchParams.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.search_url) {
@@ -55,7 +67,6 @@
         function refreshPage() {
             location.reload();
         }
-
     </script>
 </body>
 </html>

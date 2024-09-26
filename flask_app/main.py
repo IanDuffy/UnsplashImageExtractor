@@ -3,6 +3,7 @@ from flask_cors import CORS
 import json
 from datetime import datetime
 import os
+from urllib.parse import urlencode
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -27,16 +28,20 @@ def index():
 @app.route('/search')
 def search():
     query = request.args.get('query', '')
-    plus_license = request.args.get('plus_license', '')
+    orientation = request.args.get('orientation', '')
+    plus_license = request.args.get('plus_license', '').lower() == 'true'
     
     url = f"https://unsplash.com/s/photos/{query}"
-    params = []
+    params = {}
+    
+    if orientation:
+        params['orientation'] = orientation
     
     if plus_license:
-        params.append("license=plus")
+        params['license'] = 'plus'
     
     if params:
-        url += '?' + '&'.join(params)
+        url += '?' + urlencode(params)
     
     return jsonify({"search_url": url})
 
