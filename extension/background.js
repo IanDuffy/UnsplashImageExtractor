@@ -52,10 +52,6 @@ function sendDataToFlaskApp(data, retryCount = 0) {
     })
     .catch((error) => {
         console.error("Error sending data to Flask app:", error);
-        if (retryCount < 3) {
-            console.log(`Retrying... (Attempt ${retryCount + 1})`);
-            setTimeout(() => sendDataToFlaskApp(data, retryCount + 1), 1000);
-        }
     });
 }
 
@@ -69,10 +65,3 @@ function testFlaskConnection() {
             console.error('Flask app connection test failed:', error);
         });
 }
-
-// Listen for tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete' && tab.url.includes('unsplash.com/s/photos/')) {
-        chrome.tabs.sendMessage(tabId, { action: "extractImages" });
-    }
-});
