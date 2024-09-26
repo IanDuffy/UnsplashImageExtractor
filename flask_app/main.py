@@ -5,7 +5,6 @@ from datetime import datetime
 import os
 from urllib.parse import urlencode
 import time
-import uuid
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -51,9 +50,9 @@ def receive_data():
     data = request.json
     if data and 'images' in data:
         print(f"Received {len(data['images'])} images")  # Debug log
-        # Add unique ID to each image
-        for image in data['images']:
-            image['id'] = str(uuid.uuid4())
+        # Add sequential ID to each image
+        for index, image in enumerate(data['images'], start=1):
+            image['id'] = index
             print(f"Added ID {image['id']} to image: {image['title']}")  # Debug log
         
         # Ensure we only process up to 20 images
