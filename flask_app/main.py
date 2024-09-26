@@ -29,6 +29,7 @@ def index():
 def search():
     query = request.args.get('query', '')
     orientation = request.args.get('orientation', '')
+    order = request.args.get('order', 'relevance')
     plus_license = request.args.get('plus_license', '').lower() == 'true'
     
     url = f"https://unsplash.com/s/photos/{query}"
@@ -36,6 +37,9 @@ def search():
     
     if orientation:
         params['orientation'] = orientation
+    
+    if order != 'relevance':
+        params['order_by'] = order
     
     if plus_license:
         params['license'] = 'plus'
@@ -48,16 +52,19 @@ def search():
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
     data = request.json
-    # Ensure we only process up to 20 images
-    data['images'] = data['images'][:20]
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"extracted_data_{timestamp}.json"
-    file_path = os.path.join(downloaded_files_path, filename)
-    
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=2)
-    
-    return jsonify({"message": "Data received and saved successfully", "filename": filename})
+    if data and 'images' in data:
+        # Ensure we only process up to 20 images
+        data['images'] = data['images'][:20]
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"extracted_data_{timestamp}.json"
+        file_path = os.path.join(downloaded_files_path, filename)
+        
+        with open(file_path, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        return jsonify({"message": "Data received and saved successfully", "filename": filename})
+    else:
+        return jsonify({"error": "Invalid data format"}), 400
 
 @app.route('/status')
 def status():
