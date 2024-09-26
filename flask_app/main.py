@@ -14,6 +14,10 @@ os.makedirs(downloaded_files_path, exist_ok=True)
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/get_latest_images')
+def get_latest_images():
     # Get the latest JSON file from the downloaded_files directory
     json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
     if json_files:
@@ -21,9 +25,9 @@ def index():
         file_path = os.path.join(downloaded_files_path, latest_file)
         with open(file_path, 'r') as f:
             data = json.load(f)
-        return render_template('index.html', images=data['images'])
+        return jsonify(data)
     else:
-        return render_template('index.html', images=[])
+        return jsonify({"images": []})
 
 @app.route('/search')
 def search():

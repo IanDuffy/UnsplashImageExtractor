@@ -25,17 +25,50 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <div id="imageGrid">
-        {% for image in images %}
-        <div class="image-container">
-            <a href="{{ image.imageUrl }}" target="_blank">
-                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
-            </a>
-            <p>{{ image.title }}</p>
-        </div>
-        {% endfor %}
-    </div>
+    <div id="imageGrid"></div>
     <script>
+        const imageGrid = document.getElementById('imageGrid');
+
+        function createImageElement(image) {
+            const container = document.createElement('div');
+            container.className = 'image-container';
+            
+            const link = document.createElement('a');
+            link.href = image.imageUrl;
+            link.target = '_blank';
+            
+            const img = document.createElement('img');
+            img.src = image.thumbnailUrl;
+            img.alt = image.title;
+            
+            const title = document.createElement('p');
+            title.textContent = image.title;
+            
+            link.appendChild(img);
+            container.appendChild(link);
+            container.appendChild(title);
+            
+            return container;
+        }
+
+        function updateImageGrid() {
+            fetch('/get_latest_images')
+                .then(response => response.json())
+                .then(data => {
+                    imageGrid.innerHTML = '';
+                    data.images.forEach(image => {
+                        imageGrid.appendChild(createImageElement(image));
+                    });
+                })
+                .catch(error => console.error('Error fetching images:', error));
+        }
+
+        // Initial load
+        updateImageGrid();
+
+        // Update every 10 seconds
+        setInterval(updateImageGrid, 10000);
+
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
@@ -69,11 +102,6 @@
                     alert('An error occurred while searching. Please try again.');
                 });
         });
-
-        // Function to refresh the page
-        function refreshPage() {
-            location.reload();
-        }
     </script>
 </body>
 </html>
