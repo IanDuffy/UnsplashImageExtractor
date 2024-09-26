@@ -25,16 +25,7 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <div id="imageGrid">
-        {% for image in images %}
-        <div class="image-container">
-            <a href="{{ image.imageUrl }}" target="_blank">
-                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
-            </a>
-            <p>{{ image.title }}</p>
-        </div>
-        {% endfor %}
-    </div>
+    <div id="imageGrid"></div>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -59,6 +50,8 @@
                             type: "OPEN_UNSPLASH_TAB",
                             url: data.search_url
                         }, "*");
+                        // Start polling for new images
+                        pollForImages();
                     } else {
                         console.error('No search_url returned from the backend.');
                         alert('Failed to generate search URL. Please try again.');
@@ -70,9 +63,53 @@
                 });
         });
 
-        // Function to refresh the page
-        function refreshPage() {
-            location.reload();
+        function pollForImages() {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = 'Loading images...';
+
+            function fetchImages() {
+                fetch('/get_images')
+                    .then(response => response.json())
+                    .then(images => {
+                        if (images.length > 0) {
+                            displayImages(images);
+                        } else {
+                            setTimeout(fetchImages, 2000); // Retry after 2 seconds
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching images:', error);
+                        setTimeout(fetchImages, 2000); // Retry after 2 seconds
+                    });
+            }
+
+            fetchImages();
+        }
+
+        function displayImages(images) {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+
+            images.forEach(image => {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+
+                const link = document.createElement('a');
+                link.href = image.imageUrl;
+                link.target = '_blank';
+
+                const img = document.createElement('img');
+                img.src = image.thumbnailUrl;
+                img.alt = image.title;
+
+                const title = document.createElement('p');
+                title.textContent = image.title;
+
+                link.appendChild(img);
+                imageContainer.appendChild(link);
+                imageContainer.appendChild(title);
+                imageGrid.appendChild(imageContainer);
+            });
         }
     </script>
 </body>

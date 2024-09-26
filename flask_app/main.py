@@ -14,16 +14,7 @@ os.makedirs(downloaded_files_path, exist_ok=True)
 
 @app.route('/')
 def index():
-    # Get the latest JSON file from the downloaded_files directory
-    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
-    if json_files:
-        latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
-        file_path = os.path.join(downloaded_files_path, latest_file)
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        return render_template('index.html', images=data['images'])
-    else:
-        return render_template('index.html', images=[])
+    return render_template('index.html', images=[])
 
 @app.route('/search')
 def search():
@@ -65,6 +56,19 @@ def receive_data():
         return jsonify({"message": "Data received and saved successfully", "filename": filename})
     else:
         return jsonify({"error": "Invalid data format"}), 400
+
+@app.route('/get_images')
+def get_images():
+    # Get the latest JSON file from the downloaded_files directory
+    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+    if json_files:
+        latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
+        file_path = os.path.join(downloaded_files_path, latest_file)
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        return jsonify(data['images'])
+    else:
+        return jsonify([])
 
 @app.route('/status')
 def status():

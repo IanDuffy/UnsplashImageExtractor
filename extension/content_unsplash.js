@@ -1,130 +1,69 @@
-// content.js
+console.log('Content script loaded for Unsplash');
 
-console.log("Content script for Unsplash is running.");
+let extractedImages = [];
+let observer;
 
-/**
- * Extracts image data and the number of images from the Unsplash gallery.
- * - imageCount: Number of images found in the search.
- * - imageUrl: Direct link to the image page.
- * - thumbnailUrl: URL of the thumbnail image with 300w size.
- */
 function extractImageData() {
-    // Extract the number of images from the search navigation
-    const imageCountElement = document.querySelector('a[data-testid="search-nav-link-photos"] span.AQhbt');
-    let imageCount = '0';
-    if (imageCountElement) {
-        imageCount = imageCountElement.textContent.trim();
-    } else {
-        console.warn('Image count element not found.');
-    }
-
     const figures = document.querySelectorAll('figure');
-    const images = Array.from(figures).slice(0, 20).map(figure => {
-        // Select the <a> tag with itemprop="contentUrl" within the figure
-        const anchor = figure.querySelector('a[itemprop="contentUrl"]');
-        if (!anchor) return null;
+    figures.forEach(figure => {
+        if (!figure.dataset.extracted) {
+            const linkElement = figure.querySelector('a');
+            const imgElement = figure.querySelector('img');
+            
+            if (linkElement && imgElement) {
+                const imageUrl = 'https://unsplash.com' + linkElement.getAttribute('href');
+                const thumbnailUrl = imgElement.src;
+                const title = imgElement.alt;
 
-        // Select the <img> tag with itemprop="thumbnailUrl" within the <a> tag
-        const img = anchor.querySelector('img[itemprop="thumbnailUrl"]');
-        if (!img) return null;
+                extractedImages.push({
+                    imageUrl,
+                    thumbnailUrl,
+                    title
+                });
 
-        // Extract the title from the <a> tag's title attribute
-        const title = anchor.getAttribute('title') || 'Untitled';
-
-        // Extract the relative href and construct the full imageUrl
-        const imageUrlRelative = anchor.getAttribute('href') || '';
-        const imageUrl = imageUrlRelative.startsWith('http')
-            ? imageUrlRelative
-            : `https://unsplash.com${imageUrlRelative}`;
-
-        // Extract the srcset attribute
-        const srcset = img.getAttribute('srcset') || '';
-        let thumbnailUrl = '';
-
-        /**
-         * Extracts the URL corresponding to the 300w descriptor from the srcset.
-         * @param {string} srcset - The srcset attribute value.
-         * @returns {string|null} - The URL with 300w, or null if not found.
-         */
-        const getThumbnailUrl = (srcset) => {
-            if (!srcset) return null;
-
-            // Split the srcset into individual sources
-            const sources = srcset.split(',');
-
-            // Iterate through each source to find the one with '300w'
-            for (let source of sources) {
-                const [url, descriptor] = source.trim().split(' ');
-                if (descriptor === '300w') {
-                    return url;
-                }
+                figure.dataset.extracted = 'true';
             }
-
-            // If '300w' is not found, log a warning and return null
-            console.warn(`300w thumbnail not found for image: ${imageUrl}`);
-            return null;
-        };
-
-        thumbnailUrl = getThumbnailUrl(srcset);
-
-        // If '300w' URL is not found, skip this image
-        if (!thumbnailUrl) {
-            return null; // Skip this image or handle as needed
         }
+    });
 
-        // Debugging Logs
-        console.log(`Title: ${title}`);
-        console.log(`Image URL: ${imageUrl}`);
-        console.log(`Thumbnail URL: ${thumbnailUrl}`);
+    if (extractedImages.length > 0) {
+        chrome.runtime.sendMessage({
+            action: "sendDataToFlask",
+            data: { images: extractedImages }
+        });
+    }
+}
 
-        return {
-            title: title,
-            imageUrl: imageUrl,
-            thumbnailUrl: thumbnailUrl
-        };
-    }).filter(Boolean); // Remove any null entries
+function setupObserver() {
+    observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                extractImageData();
+            }
+        });
+    });
 
-    const data = {
-        url: window.location.href,
-        imageCount: imageCount, // Add the image count here
-        images: images
-    };
-
-    console.log("Sending data to background script:", data);
-
-    chrome.runtime.sendMessage({action: "sendDataToFlask", data: data}, function(response) {
-        if (chrome.runtime.lastError) {
-            console.error('Error sending message:', chrome.runtime.lastError);
-        } else {
-            console.log('Message sent successfully');
-        }
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 }
 
-/**
- * Waits for the images to load in the DOM before extracting data.
- */
-function waitForImages() {
-    return new Promise((resolve) => {
-        const checkImages = () => {
-            // Check for <img> tags with itemprop="thumbnailUrl" within <a> tags inside <figure>
-            const images = document.querySelectorAll('figure a[itemprop="contentUrl"] img[itemprop="thumbnailUrl"]');
-            if (images.length > 0) {
-                resolve();
-            } else {
-                setTimeout(checkImages, 100); // Retry after 100ms
-            }
-        };
-        checkImages();
-    });
-}
-
-/**
- * Initializes the data extraction process.
- */
-async function init() {
-    await waitForImages();
+function init() {
     extractImageData();
+    setupObserver();
 }
 
-init();
+// Run the init function when the page is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Clean up observer when navigating away from the page
+window.addEventListener('beforeunload', () => {
+    if (observer) {
+        observer.disconnect();
+    }
+});
