@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from urllib.parse import urlencode
 import time
+import uuid
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -49,6 +50,12 @@ def receive_data():
     global latest_images
     data = request.json
     if data and 'images' in data:
+        print(f"Received {len(data['images'])} images")  # Debug log
+        # Add unique ID to each image
+        for image in data['images']:
+            image['id'] = str(uuid.uuid4())
+            print(f"Added ID {image['id']} to image: {image['title']}")  # Debug log
+        
         # Ensure we only process up to 20 images
         latest_images = data['images'][:20]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -89,4 +96,4 @@ def sse():
     return Response(event_stream(), content_type='text/event-stream')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
