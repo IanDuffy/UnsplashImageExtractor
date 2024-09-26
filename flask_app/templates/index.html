@@ -25,52 +25,19 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <div id="loadingIndicator" style="display: none;">Loading...</div>
-    <div id="imageGrid"></div>
+    <div id="imageGrid">
+        {% for image in images %}
+        <div class="image-container">
+            <a href="{{ image.imageUrl }}" target="_blank">
+                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
+            </a>
+            <p>{{ image.title }}</p>
+        </div>
+        {% endfor %}
+    </div>
     <script>
-        const imageGrid = document.getElementById('imageGrid');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-
-        function createImageElement(image) {
-            const container = document.createElement('div');
-            container.className = 'image-container';
-            
-            const link = document.createElement('a');
-            link.href = image.imageUrl;
-            link.target = '_blank';
-            
-            const img = document.createElement('img');
-            img.src = image.thumbnailUrl;
-            img.alt = image.title;
-            
-            const title = document.createElement('p');
-            title.textContent = image.title;
-            
-            link.appendChild(img);
-            container.appendChild(link);
-            container.appendChild(title);
-            
-            return container;
-        }
-
-        function updateImageGrid(images) {
-            imageGrid.innerHTML = '';
-            images.forEach(image => {
-                imageGrid.appendChild(createImageElement(image));
-            });
-        }
-
-        function showLoadingIndicator() {
-            loadingIndicator.style.display = 'block';
-        }
-
-        function hideLoadingIndicator() {
-            loadingIndicator.style.display = 'none';
-        }
-
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            showLoadingIndicator();
             const query = document.getElementById('searchQuery').value;
             const orientation = document.getElementById('orientation').value;
             const order = document.getElementById('order').value;
@@ -92,51 +59,21 @@
                             type: "OPEN_UNSPLASH_TAB",
                             url: data.search_url
                         }, "*");
-                        
-                        // Wait for the Chrome extension to perform the search and send data
-                        const checkForNewData = setInterval(() => {
-                            fetch('/get_latest_images')
-                                .then(response => response.json())
-                                .then(imageData => {
-                                    if (imageData.images && imageData.images.length > 0) {
-                                        clearInterval(checkForNewData);
-                                        updateImageGrid(imageData.images);
-                                        hideLoadingIndicator();
-                                    }
-                                })
-                                .catch(error => console.error('Error fetching latest images:', error));
-                        }, 1000); // Check every second
-
-                        // Set a timeout to stop checking after 30 seconds
-                        setTimeout(() => {
-                            clearInterval(checkForNewData);
-                            hideLoadingIndicator();
-                            if (imageGrid.children.length === 0) {
-                                alert('No new images found. Please try again.');
-                            }
-                        }, 30000);
                     } else {
                         console.error('No search_url returned from the backend.');
                         alert('Failed to generate search URL. Please try again.');
-                        hideLoadingIndicator();
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching search results:', error);
                     alert('An error occurred while searching. Please try again.');
-                    hideLoadingIndicator();
                 });
         });
 
-        // Initial load of images
-        fetch('/get_latest_images')
-            .then(response => response.json())
-            .then(data => {
-                if (data.images && data.images.length > 0) {
-                    updateImageGrid(data.images);
-                }
-            })
-            .catch(error => console.error('Error fetching initial images:', error));
+        // Function to refresh the page
+        function refreshPage() {
+            location.reload();
+        }
     </script>
 </body>
 </html>
