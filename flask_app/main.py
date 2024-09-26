@@ -13,18 +13,12 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 downloaded_files_path = os.path.join(os.getcwd(), 'downloaded_files')
 os.makedirs(downloaded_files_path, exist_ok=True)
 
+# Global variable to store the latest images
+latest_images = []
+
 @app.route('/')
 def index():
-    # Get the latest JSON file from the downloaded_files directory
-    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
-    if json_files:
-        latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
-        file_path = os.path.join(downloaded_files_path, latest_file)
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        return render_template('index.html', images=data['images'])
-    else:
-        return render_template('index.html', images=[])
+    return render_template('index.html', images=latest_images)
 
 @app.route('/search')
 def search():
@@ -52,10 +46,11 @@ def search():
 
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
+    global latest_images
     data = request.json
     if data and 'images' in data:
         # Ensure we only process up to 20 images
-        data['images'] = data['images'][:20]
+        latest_images = data['images'][:20]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"extracted_data_{timestamp}.json"
         file_path = os.path.join(downloaded_files_path, filename)
@@ -63,6 +58,7 @@ def receive_data():
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2)
         
+        print(f"New data received and saved: {filename}")  # Debug log
         return jsonify({"message": "Data received and saved successfully", "filename": filename})
     else:
         return jsonify({"error": "Invalid data format"}), 400
@@ -76,28 +72,19 @@ def status():
 def downloaded_files(filename):
     return send_from_directory(downloaded_files_path, filename)
 
-def get_latest_images():
-    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
-    if json_files:
-        latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
-        file_path = os.path.join(downloaded_files_path, latest_file)
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        return data['images']
-    return []
-
 @app.route('/sse')
 def sse():
     def event_stream():
+        global latest_images
         last_update = None
         while True:
-            images = get_latest_images()
-            if images:
-                latest_update = max(image.get('timestamp', '') for image in images)
-                if latest_update != last_update:
-                    last_update = latest_update
-                    yield f"data: {json.dumps(images)}\n\n"
-            time.sleep(5)  # Check for updates every 5 seconds
+            if latest_images:
+                current_update = json.dumps(latest_images)
+                if current_update != last_update:
+                    last_update = current_update
+                    print(f"Sending SSE update with {len(latest_images)} images")  # Debug log
+                    yield f"data: {current_update}\n\n"
+            time.sleep(1)  # Check for updates every second
 
     return Response(event_stream(), content_type='text/event-stream')
 

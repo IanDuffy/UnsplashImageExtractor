@@ -62,6 +62,7 @@
         });
 
         function updateImageGrid(images) {
+            console.log("Updating image grid with", images.length, "images");  // Debug log
             const imageGrid = document.getElementById('imageGrid');
             imageGrid.innerHTML = '';
             images.forEach(image => {
@@ -80,6 +81,7 @@
         // Set up Server-Sent Events
         const evtSource = new EventSource('/sse');
         evtSource.onmessage = function(event) {
+            console.log("Received SSE event");  // Debug log
             const images = JSON.parse(event.data);
             updateImageGrid(images);
         };
@@ -87,6 +89,22 @@
         evtSource.onerror = function(err) {
             console.error("EventSource failed:", err);
         };
+
+        // Initial load of images
+        fetch('/')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const scriptContent = doc.querySelector('script').textContent;
+                const match = scriptContent.match(/var images = (\[.*?\]);/);
+                if (match) {
+                    const images = JSON.parse(match[1]);
+                    console.log("Initial load of", images.length, "images");  // Debug log
+                    updateImageGrid(images);
+                }
+            })
+            .catch(error => console.error('Error loading initial images:', error));
     </script>
 </body>
 </html>
