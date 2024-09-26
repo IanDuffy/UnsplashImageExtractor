@@ -25,16 +25,7 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <div id="imageGrid">
-        {% for image in images %}
-        <div class="image-container">
-            <a href="{{ image.imageUrl }}" target="_blank">
-                <img src="{{ image.thumbnailUrl }}" alt="{{ image.title }}">
-            </a>
-            <p>{{ image.title }}</p>
-        </div>
-        {% endfor %}
-    </div>
+    <div id="imageGrid"></div>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -70,10 +61,32 @@
                 });
         });
 
-        // Function to refresh the page
-        function refreshPage() {
-            location.reload();
+        function updateImageGrid(images) {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            images.forEach(image => {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+                imageContainer.innerHTML = `
+                    <a href="${image.imageUrl}" target="_blank">
+                        <img src="${image.thumbnailUrl}" alt="${image.title}">
+                    </a>
+                    <p>${image.title}</p>
+                `;
+                imageGrid.appendChild(imageContainer);
+            });
         }
+
+        // Set up Server-Sent Events
+        const evtSource = new EventSource('/sse');
+        evtSource.onmessage = function(event) {
+            const images = JSON.parse(event.data);
+            updateImageGrid(images);
+        };
+
+        evtSource.onerror = function(err) {
+            console.error("EventSource failed:", err);
+        };
     </script>
 </body>
 </html>
