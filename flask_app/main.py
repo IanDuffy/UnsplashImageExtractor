@@ -51,14 +51,7 @@ def search():
     if params:
         url += '?' + urlencode(params)
     
-    # Get the latest images
-    latest_images = get_latest_images().json
-    
-    return jsonify({"search_url": url, "latest_images": latest_images})
-
-@app.route('/latest_images')
-def latest_images():
-    return get_latest_images()
+    return jsonify({"search_url": url})
 
 @app.route('/receive_data', methods=['POST'])
 def receive_data():
@@ -73,7 +66,12 @@ def receive_data():
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2)
         
-        return jsonify({"message": "Data received and saved successfully", "filename": filename})
+        # Return the latest image data along with the success message
+        return jsonify({
+            "message": "Data received and saved successfully",
+            "filename": filename,
+            "latest_images": data
+        })
     else:
         return jsonify({"error": "Invalid data format"}), 400
 

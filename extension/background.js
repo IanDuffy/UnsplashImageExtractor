@@ -15,7 +15,14 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.action === "sendDataToFlask") {
         console.log("Received data from content script:", request.data);
-        sendDataToFlaskApp(request.data);
+        sendDataToFlaskApp(request.data)
+            .then(result => {
+                sendResponse({ status: 'success', result: result });
+            })
+            .catch(error => {
+                sendResponse({ status: 'error', message: error.message });
+            });
+        return true; // Keep the message channel open for asynchronous response
     } else if (request.action === "openTab") {
         const url = request.url;
         if (url) {
@@ -23,35 +30,36 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 console.log(`Opened new tab with URL: ${url}`);
                 sendResponse({ status: 'success', tabId: tab.id });
             });
-            // Indicate that the response will be sent asynchronously
-            return true;
+            return true; // Keep the message channel open for asynchronous response
         } else {
             sendResponse({ status: 'error', message: 'No URL provided' });
         }
     }
-    sendResponse({ received: true });
-    return true; // Keep the message channel open for asynchronous response
 });
 
-function sendDataToFlaskApp(data, retryCount = 0) {
-    fetch(`${FLASK_APP_URL}/receive_data`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(result => {
-        console.log("Data sent to Flask app successfully.", result);
-    })
-    .catch((error) => {
-        console.error("Error sending data to Flask app:", error);
+function sendDataToFlaskApp(data) {
+    return new Promise((resolve, reject) => {
+        fetch(`${FLASK_APP_URL}/receive_data`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log("Data sent to Flask app successfully.", result);
+            resolve(result);
+        })
+        .catch((error) => {
+            console.error("Error sending data to Flask app:", error);
+            reject(error);
+        });
     });
 }
 
