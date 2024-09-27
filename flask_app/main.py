@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 import time
 import requests
 import logging
+import re
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -150,8 +151,19 @@ def analyze_images():
         response.raise_for_status()
         result = response.json()
         if "choices" in result:
-            message_content = json.loads(result['choices'][0]['message']['content'])
-            logging.info(f"GPT-4o API response: {message_content}")
+            response_content = result['choices'][0]['message']['content']
+            logging.info(f"GPT-4o API raw response: {response_content}")
+
+            # Remove any code fences or extra text
+            cleaned_content = re.sub(r'^```.*?\n|```$', '', response_content, flags=re.DOTALL).strip()
+            logging.info(f"Cleaned response: {cleaned_content}")
+
+            try:
+                message_content = json.loads(cleaned_content)
+                logging.info(f"Parsed JSON content: {message_content}")
+            except json.JSONDecodeError as e:
+                logging.error(f"JSON parsing error: {str(e)}")
+                return jsonify({"error": "Failed to parse JSON from API response"}), 500
 
             image_number = message_content.get('image_number', 'none')
             alt_text = message_content.get('alt_text', '')
