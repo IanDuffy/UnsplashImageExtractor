@@ -101,11 +101,19 @@ def sse():
 
 @app.route('/analyze_images', methods=['POST'])
 def analyze_images():
-    data = request.json
-    if not data or 'images' not in data:
-        return jsonify({"error": "Invalid data format"}), 400
+    # Find the most recent JSON file
+    json_files = [f for f in os.listdir(downloaded_files_path) if f.endswith('.json')]
+    if not json_files:
+        return jsonify({"error": "No JSON files found"}), 400
+    latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
+    
+    # Read the JSON file
+    with open(os.path.join(downloaded_files_path, latest_file), 'r') as f:
+        data = json.load(f)
+    
+    # Extract thumbnail URLs and map them to image IDs
+    images = [{"id": img['id'], "thumbnailUrl": img['thumbnailUrl']} for img in data['images']]
 
-    images = data['images']
     prompt = "Analyze the following images and return the numbered image that most closely matches the description: 'A person working on a laptop.' Return a JSON object with the image number and a web-friendly alt-text description (up to 125 characters) for the selected image. If none of the images fit, return 'none'."
 
     payload = {
@@ -118,7 +126,7 @@ def analyze_images():
                 ] + [
                     {
                         "type": "image_url",
-                        "image_url": {"url": image['imageUrl']}
+                        "image_url": {"url": image['thumbnailUrl']}
                     } for image in images
                 ]
             }
