@@ -28,6 +28,8 @@
     <button id="analyzeButton" style="display: none;">Analyze Images</button>
     <div id="imageGrid"></div>
     <script>
+        let latest_images = [];
+
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const query = document.getElementById('searchQuery').value;
@@ -64,6 +66,7 @@
 
         function updateImageGrid(images) {
             console.log("Updating image grid with", images.length, "images");
+            latest_images = images;  // Update the global variable
             const imageGrid = document.getElementById('imageGrid');
             imageGrid.innerHTML = '';
             images.forEach(image => {
