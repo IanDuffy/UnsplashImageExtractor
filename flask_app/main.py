@@ -6,9 +6,13 @@ import os
 from urllib.parse import urlencode
 import time
 import requests
+import logging
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Ensure the 'downloaded_files' folder exists
 downloaded_files_path = os.path.join(os.getcwd(), 'downloaded_files')
@@ -50,11 +54,11 @@ def receive_data():
     global latest_images
     data = request.json
     if data and 'images' in data:
-        print(f"Received {len(data['images'])} images")  # Debug log
+        logging.info(f"Received {len(data['images'])} images")
         # Add sequential ID to each image
         for index, image in enumerate(data['images'], start=1):
             image['id'] = index
-            print(f"Added ID {image['id']} to image: {image['title']}")  # Debug log
+            logging.info(f"Added ID {image['id']} to image: {image['title']}")
         
         # Ensure we only process up to 20 images
         latest_images = data['images'][:20]
@@ -65,14 +69,14 @@ def receive_data():
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2)
         
-        print(f"New data received and saved: {filename}")  # Debug log
+        logging.info(f"New data received and saved: {filename}")
         return jsonify({"message": "Data received and saved successfully", "filename": filename})
     else:
         return jsonify({"error": "Invalid data format"}), 400
 
 @app.route('/status')
 def status():
-    print("Status endpoint accessed")
+    logging.info("Status endpoint accessed")
     return jsonify({"status": "running"})
 
 @app.route('/downloaded_files/<path:filename>')
@@ -89,7 +93,7 @@ def sse():
                 current_update = json.dumps(latest_images)
                 if current_update != last_update:
                     last_update = current_update
-                    print(f"Sending SSE update with {len(latest_images)} images")  # Debug log
+                    logging.info(f"Sending SSE update with {len(latest_images)} images")
                     yield f"data: {current_update}\n\n"
             time.sleep(1)  # Check for updates every second
 
@@ -128,21 +132,28 @@ def analyze_images():
     }
 
     try:
+        logging.info("Sending request to GPT-4o API")
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,
-            json=payload
+            json=payload,
+            timeout=30  # Add a timeout to prevent hanging
         )
         response.raise_for_status()
         result = response.json()
         if "choices" in result:
             message_content = json.loads(result['choices'][0]['message']['content'])
+            logging.info(f"GPT-4o API response: {message_content}")
             return jsonify(message_content)
         else:
+            logging.error(f"Unexpected API response: {result}")
             return jsonify({"error": "Unexpected API response"}), 500
     except requests.RequestException as e:
-        print(f"API request failed: {str(e)}")
+        logging.error(f"API request failed: {str(e)}")
         return jsonify({"error": "Failed to analyze images"}), 500
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse API response: {str(e)}")
+        return jsonify({"error": "Failed to parse API response"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
