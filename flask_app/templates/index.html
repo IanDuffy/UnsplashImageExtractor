@@ -63,7 +63,7 @@
         });
 
         function updateImageGrid(images) {
-            console.log("Updating image grid with", images.length, "images");  // Debug log
+            console.log("Updating image grid with", images.length, "images");
             const imageGrid = document.getElementById('imageGrid');
             imageGrid.innerHTML = '';
             images.forEach(image => {
@@ -78,13 +78,14 @@
                 `;
                 imageGrid.appendChild(imageContainer);
             });
-            document.getElementById('analyzeButton').style.display = images.length > 0 ? 'block' : 'none';
+            const analyzeButton = document.getElementById('analyzeButton');
+            analyzeButton.style.display = images.length > 0 ? 'block' : 'none';
         }
 
         // Set up Server-Sent Events
         const evtSource = new EventSource('/sse');
         evtSource.onmessage = function(event) {
-            console.log("Received SSE event");  // Debug log
+            console.log("Received SSE event");
             const images = JSON.parse(event.data);
             updateImageGrid(images);
         };
@@ -103,7 +104,7 @@
                 const match = scriptContent.match(/var images = (\[.*?\]);/);
                 if (match) {
                     const images = JSON.parse(match[1]);
-                    console.log("Initial load of", images.length, "images");  // Debug log
+                    console.log("Initial load of", images.length, "images");
                     updateImageGrid(images);
                 }
             })

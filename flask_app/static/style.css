@@ -43,6 +43,16 @@ button:hover {
     background-color: #45a049;
 }
 
+#analyzeButton {
+    display: block;
+    margin: 20px auto;
+    background-color: #3498db;
+}
+
+#analyzeButton:hover {
+    background-color: #2980b9;
+}
+
 #imageGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
