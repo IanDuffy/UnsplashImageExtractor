@@ -141,6 +141,7 @@ def analyze_images():
 
     try:
         logging.info("Sending request to GPT-4o API")
+        logging.info(f"Sending payload to GPT-4o API: {json.dumps(payload, indent=2)}")
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,
@@ -148,6 +149,7 @@ def analyze_images():
             timeout=30  # Add a timeout to prevent hanging
         )
         response.raise_for_status()
+        logging.info(f"Received response from GPT-4o API: {response.text}")
         result = response.json()
         if "choices" in result:
             message_content = json.loads(result['choices'][0]['message']['content'])
@@ -161,6 +163,7 @@ def analyze_images():
         return jsonify({"error": "Failed to analyze images"}), 500
     except json.JSONDecodeError as e:
         logging.error(f"Failed to parse API response: {str(e)}")
+        logging.error(f"Full API response: {response.text}")
         return jsonify({"error": "Failed to parse API response"}), 500
 
 if __name__ == '__main__':
