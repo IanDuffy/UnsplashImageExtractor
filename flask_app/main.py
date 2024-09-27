@@ -114,7 +114,7 @@ def analyze_images():
     # Extract thumbnail URLs and map them to image IDs
     images = [{"id": img['id'], "thumbnailUrl": img['thumbnailUrl']} for img in data['images']]
 
-    prompt = "Analyze the following images and return the image number for an image that most closely matches the description: 'A person working on a laptop.' Return a JSON object with only the number of the selected image based on the payload order, as well as and a web-friendly alt-text description (up to 125 characters) for the selected image. If none of the images fit, return 'none'."
+    prompt = "Analyze the following images and return which image  would be most suitable for an article cover image, and that most closely matches the description: 'A person working on a laptop.' Return a JSON object with the image_number based on the payload order, as well as and a web-friendly alt text description (up to 125 characters) written as alt_text. If none of the images fit, return 'none' for image_number."
 
     payload = {
         "model": "gpt-4o-mini",
@@ -148,6 +148,7 @@ def analyze_images():
             timeout=30
         )
         response.raise_for_status()
+        logging.info(f"Full GPT-4o API response: {response.text}")
         result = response.json()
         if "choices" in result:
             message_content = json.loads(result['choices'][0]['message']['content'])
@@ -163,6 +164,10 @@ def analyze_images():
         else:
             logging.error(f"Unexpected API response: {result}")
             return jsonify({"error": "Unexpected API response"}), 500
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse API response: {str(e)}")
+        logging.error(f"Raw API response: {response.text}")
+        return jsonify({"error": f"Failed to parse API response: {str(e)}"}), 500
     except Exception as e:
         logging.error(f"Error in analyze_images: {str(e)}")
         return jsonify({"error": str(e)}), 500
