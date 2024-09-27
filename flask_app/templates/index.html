@@ -129,7 +129,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Raw analysis result:', data);
+                console.log('Analysis result:', data);
                 const analysisResult = document.getElementById('analysisResult');
                 const selectedImageInfo = document.getElementById('selectedImageInfo');
                 const selectedImageThumbnail = document.getElementById('selectedImageThumbnail');
@@ -142,9 +142,8 @@
                         <strong>Selected Image:</strong> Image ${data.image_number}<br>
                         <strong>Alt Text:</strong> ${data.alt_text}
                     `;
-                    const selectedImage = latest_images.find(img => img.id === parseInt(data.image_number));
-                    if (selectedImage) {
-                        selectedImageThumbnail.src = selectedImage.thumbnailUrl;
+                    if (data.selected_image) {
+                        selectedImageThumbnail.src = data.selected_image.thumbnailUrl;
                         selectedImageThumbnail.alt = data.alt_text;
                         selectedImageThumbnail.style.display = 'block';
                     } else {

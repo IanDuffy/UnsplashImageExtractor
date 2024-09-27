@@ -6,7 +6,7 @@ console.log("Content script for Unsplash is running.");
  * Extracts image data and the number of images from the Unsplash gallery.
  * - imageCount: Number of images found in the search.
  * - imageUrl: Direct link to the image page.
- * - thumbnailUrl: URL of the thumbnail image with 300w size.
+ * - thumbnailUrl: URL of the thumbnail image with 200w size.
  */
 function extractImageData() {
     // Extract the number of images from the search navigation
@@ -19,7 +19,7 @@ function extractImageData() {
     }
 
     const figures = document.querySelectorAll('figure');
-    const images = Array.from(figures).slice(0, 20).map(figure => {
+    const images = Array.from(figures).slice(0, 4).map(figure => {
         // Select the <a> tag with itemprop="contentUrl" within the figure
         const anchor = figure.querySelector('a[itemprop="contentUrl"]');
         if (!anchor) return null;
@@ -42,9 +42,9 @@ function extractImageData() {
         let thumbnailUrl = '';
 
         /**
-         * Extracts the URL corresponding to the 300w descriptor from the srcset.
+         * Extracts the URL corresponding to the 200w descriptor from the srcset.
          * @param {string} srcset - The srcset attribute value.
-         * @returns {string|null} - The URL with 300w, or null if not found.
+         * @returns {string|null} - The URL with 200w, or null if not found.
          */
         const getThumbnailUrl = (srcset) => {
             if (!srcset) return null;
@@ -52,22 +52,22 @@ function extractImageData() {
             // Split the srcset into individual sources
             const sources = srcset.split(',');
 
-            // Iterate through each source to find the one with '300w'
+            // Iterate through each source to find the one with '200w'
             for (let source of sources) {
                 const [url, descriptor] = source.trim().split(' ');
-                if (descriptor === '300w') {
+                if (descriptor === '200w') {
                     return url;
                 }
             }
 
-            // If '300w' is not found, log a warning and return null
-            console.warn(`300w thumbnail not found for image: ${imageUrl}`);
+            // If '200w' is not found, log a warning and return null
+            console.warn(`200w thumbnail not found for image: ${imageUrl}`);
             return null;
         };
 
         thumbnailUrl = getThumbnailUrl(srcset);
 
-        // If '300w' URL is not found, skip this image
+        // If '200w' URL is not found, skip this image
         if (!thumbnailUrl) {
             return null; // Skip this image or handle as needed
         }

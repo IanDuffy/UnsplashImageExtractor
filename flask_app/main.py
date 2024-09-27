@@ -31,22 +31,22 @@ def search():
     orientation = request.args.get('orientation', '')
     order = request.args.get('order', 'relevance')
     plus_license = request.args.get('plus_license', '').lower() == 'true'
-    
+
     url = f"https://unsplash.com/s/photos/{query}"
     params = {}
-    
+
     if orientation:
         params['orientation'] = orientation
-    
+
     if order != 'relevance':
         params['order_by'] = order
-    
+
     if plus_license:
         params['license'] = 'plus'
-    
+
     if params:
         url += '?' + urlencode(params)
-    
+
     return jsonify({"search_url": url})
 
 @app.route('/receive_data', methods=['POST'])
@@ -59,16 +59,16 @@ def receive_data():
         for index, image in enumerate(data['images'], start=1):
             image['id'] = index
             logging.info(f"Added ID {image['id']} to image: {image['title']}")
-        
-        # Ensure we only process up to 20 images
-        latest_images = data['images'][:20]
+
+        # Ensure we only process up to 4 images
+        latest_images = data['images'][:4]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"extracted_data_{timestamp}.json"
         file_path = os.path.join(downloaded_files_path, filename)
-        
+
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2)
-        
+
         logging.info(f"New data received and saved: {filename}")
         return jsonify({"message": "Data received and saved successfully", "filename": filename})
     else:
@@ -106,11 +106,11 @@ def analyze_images():
     if not json_files:
         return jsonify({"error": "No JSON files found"}), 400
     latest_file = max(json_files, key=lambda x: os.path.getctime(os.path.join(downloaded_files_path, x)))
-    
+
     # Read the JSON file
     with open(os.path.join(downloaded_files_path, latest_file), 'r') as f:
         data = json.load(f)
-    
+
     # Extract thumbnail URLs and map them to image IDs
     images = [{"id": img['id'], "thumbnailUrl": img['thumbnailUrl']} for img in data['images']]
 
@@ -148,15 +148,14 @@ def analyze_images():
             timeout=30
         )
         response.raise_for_status()
-        logging.info(f"Full GPT-4o API response: {response.text}")
         result = response.json()
         if "choices" in result:
             message_content = json.loads(result['choices'][0]['message']['content'])
             logging.info(f"GPT-4o API response: {message_content}")
-            
+
             image_number = message_content.get('image_number', 'none')
             alt_text = message_content.get('alt_text', '')
-            
+
             return jsonify({
                 "image_number": image_number,
                 "alt_text": alt_text
@@ -164,10 +163,6 @@ def analyze_images():
         else:
             logging.error(f"Unexpected API response: {result}")
             return jsonify({"error": "Unexpected API response"}), 500
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse API response: {str(e)}")
-        logging.error(f"Raw API response: {response.text}")
-        return jsonify({"error": f"Failed to parse API response: {str(e)}"}), 500
     except Exception as e:
         logging.error(f"Error in analyze_images: {str(e)}")
         return jsonify({"error": str(e)}), 500
