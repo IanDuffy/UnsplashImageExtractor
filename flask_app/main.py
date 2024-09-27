@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from urllib.parse import urlencode
 import time
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -93,6 +94,55 @@ def sse():
             time.sleep(1)  # Check for updates every second
 
     return Response(event_stream(), content_type='text/event-stream')
+
+@app.route('/analyze_images', methods=['POST'])
+def analyze_images():
+    data = request.json
+    if not data or 'images' not in data:
+        return jsonify({"error": "Invalid data format"}), 400
+
+    images = data['images']
+    prompt = "Analyze the following images and return the numbered image that most closely matches the description: 'A person working on a laptop.' Return a JSON object with the image number and a web-friendly alt-text description (up to 125 characters) for the selected image. If none of the images fit, return 'none'."
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt}
+                ] + [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image['imageUrl']}
+                    } for image in images
+                ]
+            }
+        ],
+        "max_tokens": 300
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"
+    }
+
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload
+        )
+        response.raise_for_status()
+        result = response.json()
+        if "choices" in result:
+            message_content = json.loads(result['choices'][0]['message']['content'])
+            return jsonify(message_content)
+        else:
+            return jsonify({"error": "Unexpected API response"}), 500
+    except requests.RequestException as e:
+        print(f"API request failed: {str(e)}")
+        return jsonify({"error": "Failed to analyze images"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

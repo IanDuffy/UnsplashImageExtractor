@@ -25,6 +25,7 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
+    <button id="analyzeButton" style="display: none;">Analyze Images</button>
     <div id="imageGrid"></div>
     <script>
         document.getElementById('searchForm').addEventListener('submit', function(e) {
@@ -77,6 +78,7 @@
                 `;
                 imageGrid.appendChild(imageContainer);
             });
+            document.getElementById('analyzeButton').style.display = images.length > 0 ? 'block' : 'none';
         }
 
         // Set up Server-Sent Events
@@ -106,6 +108,26 @@
                 }
             })
             .catch(error => console.error('Error loading initial images:', error));
+
+        // Add event listener for the Analyze Images button
+        document.getElementById('analyzeButton').addEventListener('click', function() {
+            fetch('/analyze_images', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ images: latest_images })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Analysis result:', data);
+                alert(`Selected image: ${data.image_number}\nAlt text: ${data.alt_text}`);
+            })
+            .catch(error => {
+                console.error('Error analyzing images:', error);
+                alert('An error occurred while analyzing images. Please try again.');
+            });
+        });
     </script>
 </body>
 </html>
