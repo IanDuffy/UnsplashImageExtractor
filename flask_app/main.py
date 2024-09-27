@@ -114,7 +114,7 @@ def analyze_images():
     # Extract thumbnail URLs and map them to image IDs
     images = [{"id": img['id'], "thumbnailUrl": img['thumbnailUrl']} for img in data['images']]
 
-    prompt = "Analyze the following images and return the numbered image that most closely matches the description: 'A person working on a laptop.' Return a JSON object with the image number and a web-friendly alt-text description (up to 125 characters) for the selected image. If none of the images fit, return 'none'."
+    prompt = "Analyze the following images and return the image number for an image that most closely matches the description: 'A person working on a laptop.' Return a JSON object with only the number of the selected image based on the payload order, as well as and a web-friendly alt-text description (up to 125 characters) for the selected image. If none of the images fit, return 'none'."
 
     payload = {
         "model": "gpt-4o-mini",
