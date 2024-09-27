@@ -142,8 +142,9 @@
                         <strong>Selected Image:</strong> Image ${data.image_number}<br>
                         <strong>Alt Text:</strong> ${data.alt_text}
                     `;
-                    if (data.selected_image) {
-                        selectedImageThumbnail.src = data.selected_image.thumbnailUrl;
+                    const selectedImage = latest_images.find(img => img.id === parseInt(data.image_number));
+                    if (selectedImage) {
+                        selectedImageThumbnail.src = selectedImage.thumbnailUrl;
                         selectedImageThumbnail.alt = data.alt_text;
                         selectedImageThumbnail.style.display = 'block';
                     } else {
