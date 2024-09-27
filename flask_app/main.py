@@ -154,7 +154,21 @@ def analyze_images():
         if "choices" in result:
             message_content = json.loads(result['choices'][0]['message']['content'])
             logging.info(f"GPT-4o API response: {message_content}")
-            return jsonify(message_content)
+            
+            # Improve response parsing
+            image_number = message_content.get('image_number', 'none')
+            alt_text = message_content.get('alt_text', '')
+            
+            # Find the corresponding image details
+            selected_image = next((img for img in images if img['id'] == int(image_number)), None) if image_number != 'none' else None
+            
+            response_data = {
+                "image_number": image_number,
+                "alt_text": alt_text,
+                "selected_image": selected_image
+            }
+            
+            return jsonify(response_data)
         else:
             logging.error(f"Unexpected API response: {result}")
             return jsonify({"error": "Unexpected API response"}), 500

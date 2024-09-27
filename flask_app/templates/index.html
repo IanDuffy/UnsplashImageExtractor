@@ -26,6 +26,11 @@
         <button type="submit">Search Unsplash</button>
     </form>
     <button id="analyzeButton" style="display: none;">Analyze Images</button>
+    <div id="analysisResult" style="display: none; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+        <h3>Analysis Result:</h3>
+        <p id="selectedImageInfo"></p>
+        <img id="selectedImageThumbnail" src="" alt="" style="max-width: 300px; margin-top: 10px;">
+    </div>
     <div id="imageGrid"></div>
     <script>
         let latest_images = [];
@@ -125,7 +130,28 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Analysis result:', data);
-                alert(`Selected image: ${data.image_number}\nAlt text: ${data.alt_text}`);
+                const analysisResult = document.getElementById('analysisResult');
+                const selectedImageInfo = document.getElementById('selectedImageInfo');
+                const selectedImageThumbnail = document.getElementById('selectedImageThumbnail');
+
+                if (data.image_number === 'none') {
+                    selectedImageInfo.textContent = 'No matching image found.';
+                    selectedImageThumbnail.style.display = 'none';
+                } else {
+                    selectedImageInfo.innerHTML = `
+                        <strong>Selected Image:</strong> Image ${data.image_number}<br>
+                        <strong>Alt Text:</strong> ${data.alt_text}
+                    `;
+                    if (data.selected_image) {
+                        selectedImageThumbnail.src = data.selected_image.thumbnailUrl;
+                        selectedImageThumbnail.alt = data.alt_text;
+                        selectedImageThumbnail.style.display = 'block';
+                    } else {
+                        selectedImageThumbnail.style.display = 'none';
+                    }
+                }
+
+                analysisResult.style.display = 'block';
             })
             .catch(error => {
                 console.error('Error analyzing images:', error);
