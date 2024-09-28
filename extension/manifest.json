@@ -3,7 +3,7 @@
   "name": "Unsplash Image Extractor",
   "version": "1.0",
   "description": "Extract and preview Unsplash images",
-  "permissions": ["activeTab", "scripting", "storage", "downloads", "tabs", "incognito"],
+  "permissions": ["activeTab", "scripting", "storage", "downloads", "tabs"],
   "host_permissions": [
     "https://unsplash.com/*",
     "https://d5c32f3d-ed8e-45c1-92dc-76e619b42552-00-2d5g7pwkbt0zo.janeway.replit.dev/*"

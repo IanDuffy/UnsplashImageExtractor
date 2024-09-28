@@ -19,9 +19,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     } else if (request.action === "openTab") {
         const url = request.url;
         if (url) {
-            chrome.windows.create({ url: url, incognito: true }, function(window) {
-                console.log(`Opened new incognito window with URL: ${url}`);
-                sendResponse({ status: 'success', windowId: window.id });
+            chrome.tabs.create({ url: url, active: false }, function(tab) {
+                console.log(`Opened new tab with URL: ${url}`);
+                sendResponse({ status: 'success', tabId: tab.id });
             });
             // Indicate that the response will be sent asynchronously
             return true;
