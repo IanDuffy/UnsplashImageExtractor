@@ -61,8 +61,8 @@ def receive_data():
             image['id'] = index
             logging.info(f"Added ID {image['id']} to image: {image['title']}")
 
-        # Ensure we only process up to 4 images
-        latest_images = data['images'][:4]
+        # Ensure we only process up to 20 images
+        latest_images = data['images'][:20]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"extracted_data_{timestamp}.json"
         file_path = os.path.join(downloaded_files_path, filename)
@@ -115,7 +115,16 @@ def analyze_images():
     # Extract thumbnail URLs and map them to image IDs
     images = [{"id": img['id'], "thumbnailUrl": img['thumbnailUrl']} for img in data['images']]
 
-    prompt = "Analyze the following images and return which image  would be most suitable for an article cover image, and that most closely matches the description: 'A person working on a laptop.' Return a JSON object with the image_number based on the payload order, as well as and a web-friendly alt text description (up to 125 characters) written as alt_text. If none of the images fit, return 'none' for image_number."
+    # Get the custom prompt from the request
+    request_data = request.get_json()
+    if not request_data or 'prompt' not in request_data:
+        return jsonify({"error": "No prompt provided"}), 400
+
+    user_prompt = request_data['prompt']
+
+    prompt = (
+        f"Analyze the following images and return which image would be most suitable for an article cover image, and that most closely matches the description: '{user_prompt}'. Respond **only** with a JSON object containing two keys: 'image_number' (based on the payload order) and 'alt_text' (a web-friendly alt text description up to 125 characters). If none of the images fit, return 'none' for 'image_number'. Do not include any additional text."
+    )
 
     payload = {
         "model": "gpt-4o-mini",
@@ -142,6 +151,7 @@ def analyze_images():
 
     try:
         logging.info("Sending request to GPT-4o API")
+        logging.info(f"User prompt sent: {prompt}")
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,

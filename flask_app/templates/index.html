@@ -1,3 +1,5 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,9 +27,14 @@
         </label>
         <button type="submit">Search Unsplash</button>
     </form>
-    <button id="analyzeButton" style="display: none;">Analyze Images</button>
+    <!-- Form for user input -->
+    <form id="analyzeForm">
+        <label for="customPrompt">Enter Description: </label>
+        <input type="text" id="customPrompt" name="customPrompt" placeholder="e.g., A person working on a laptop" required>
+        <button type="submit">Analyze Images</button>
+    </form>
     <div id="analysisResult" style="display: none; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
-        <h3>Analysis Result:</h3>
+        <h3>Best image:</h3>
         <p id="selectedImageInfo"></p>
         <img id="selectedImageThumbnail" src="" alt="" style="max-width: 300px; margin-top: 10px;">
     </div>
@@ -119,13 +126,15 @@
             .catch(error => console.error('Error loading initial images:', error));
 
         // Add event listener for the Analyze Images button
-        document.getElementById('analyzeButton').addEventListener('click', function() {
+        document.getElementById('analyzeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const customPrompt = document.getElementById('customPrompt').value;
             fetch('/analyze_images', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ images: latest_images })
+                body: JSON.stringify({ images: latest_images, prompt: customPrompt })
             })
             .then(response => response.json())
             .then(data => {

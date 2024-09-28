@@ -19,7 +19,7 @@ function extractImageData() {
     }
 
     const figures = document.querySelectorAll('figure');
-    const images = Array.from(figures).slice(0, 4).map(figure => {
+    const images = Array.from(figures).slice(0, 20).map(figure => {
         // Select the <a> tag with itemprop="contentUrl" within the figure
         const anchor = figure.querySelector('a[itemprop="contentUrl"]');
         if (!anchor) return null;
