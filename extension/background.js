@@ -19,18 +19,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     } else if (request.action === "openTab") {
         const url = request.url;
         if (url) {
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                const currentTab = tabs[0];
-                chrome.windows.create({ url: url, incognito: true, focused: true }, function(incognitoWindow) {
-                    console.log(`Opened new incognito window with URL: ${url}`);
-                    // Focus back to the original window after a short delay
-                    setTimeout(() => {
-                        chrome.windows.update(currentTab.windowId, {focused: true}, () => {
-                            chrome.tabs.update(currentTab.id, {active: true});
-                        });
-                    }, 500);
-                    sendResponse({ status: 'success', windowId: incognitoWindow.id });
-                });
+            chrome.windows.create({ url: url, incognito: true }, function(window) {
+                console.log(`Opened new incognito window with URL: ${url}`);
+                sendResponse({ status: 'success', windowId: window.id });
             });
             // Indicate that the response will be sent asynchronously
             return true;
